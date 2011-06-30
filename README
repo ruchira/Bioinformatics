@@ -1,0 +1,6 @@
+This directory contains bioinformatics software, some of which was written
+as a member of the Berkeley Phylogenomics Group
+http://phylogenomics.berkeley.edu
+
+compute_alignment_conservation.c - Program to compute the conservation of a
+multiple-sequence alignment in a2m format.
