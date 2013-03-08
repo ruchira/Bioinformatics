@@ -1,6 +1,15 @@
 This directory contains bioinformatics software, some of which was written
 as a member of the Berkeley Phylogenomics Group
 http://phylogenomics.berkeley.edu
+and some of which was written as a member of the Center for Evolution and
+Cancer
+http://cancer.ucsf.edu/evolution
 
 compute_alignment_conservation.c - Program to compute the conservation of a
 multiple-sequence alignment in a2m format.
+PHOG - The Berkeley PHOG software for computing orthologs. Incorporates branch
+length information, supporting coarser or more refined clustering based on
+evolutionary distance.
+bw9 - Model of tumor progression including driver, housekeeper, passenger, and
+mutator mutations (when enough mutator mutations accumulate, the mutation rate
+becomes elevated).
