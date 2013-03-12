@@ -33,20 +33,176 @@
 #include <iostream>
 #include "math.h"
 
+#include "Poco/Util/Application.h"
+#include "Poco/Util/Option.h"
+#include "Poco/Util/OptionSet.h"
+#include "Poco/Util/HelpFormatter.h"
+#include "Poco/Util/AbstractConfiguration.h"
+#include "Poco/AutoPtr.h"
+
+#include <iostream>
+
+
+using Poco::Util::Application;
+using Poco::Util::Option;
+using Poco::Util::OptionSet;
+using Poco::Util::HelpFormatter;
+using Poco::Util::AbstractConfiguration;
+using Poco::Util::OptionCallback;
+using Poco::AutoPtr;
+
 const float square_root_of_three = sqrt(3.0);
-const pair<float,float> unit_diagonal = make_pair(0.5, 
+const pair<float,float> unit_diagonal = make_pair(0.5,
                                                   0.5 * square_root_of_three);
 
-int main(int argc, char **argv) {
-  try {
-    cout << "Under development!" << endl;
-  } catch(exception& e) {
-      cerr << "error: " << e.what() << "\n";
-      return 1;
-  }
-  catch(...) {
-      cerr << "Exception of unknown type!\n";
+class FriendsOrFoesApp: public Application {
+public:
+  FriendsOrFoesApp(): _helpRequested(false) {
   }
 
-  return 0;
-}
+protected:
+	void initialize(Application& self)
+	{
+		loadConfiguration(); // load default configuration files, if present
+		Application::initialize(self);
+	}
+
+	void uninitialize()
+	{
+		Application::uninitialize();
+	}
+
+	void reinitialize(Application& self)
+	{
+		Application::reinitialize(self);
+	}
+
+	void defineOptions(OptionSet& options)
+	{
+		Application::defineOptions(options);
+
+		options.addOption(
+			Option("help", "h", "display help information on command line arguments")
+				.required(false)
+				.repeatable(false)
+				.callback(OptionCallback<FriendsOrFoesApp>(this, 
+                                              &FriendsOrFoesApp::handleHelp)));
+
+		options.addOption(
+			Option("define", "D", "define a configuration property")
+				.required(false)
+				.repeatable(true)
+				.argument("name=value")
+				.callback(OptionCallback<FriendsOrFoesApp>(this, &FriendsOrFoesApp::handleDefine)));
+				
+		options.addOption(
+			Option("config-file", "f", "load configuration data from a file")
+				.required(false)
+				.repeatable(true)
+				.argument("file")
+				.callback(OptionCallback<FriendsOrFoesApp>(this, &FriendsOrFoesApp::handleConfig)));
+
+		options.addOption(
+			Option("bind", "b", "bind option value to test.property")
+				.required(false)
+				.repeatable(false)
+				.argument("value")
+				.binding("test.property"));
+	}
+	
+	void handleHelp(const std::string& name, const std::string& value)
+	{
+		_helpRequested = true;
+		displayHelp();
+		stopOptionsProcessing();
+	}
+	
+	void handleDefine(const std::string& name, const std::string& value)
+	{
+		defineProperty(value);
+	}
+
+	void handleConfig(const std::string& name, const std::string& value)
+	{
+		loadConfiguration(value);
+	}
+		
+	void displayHelp()
+	{
+		HelpFormatter helpFormatter(options());
+		helpFormatter.setCommand(commandName());
+		helpFormatter.setUsage("OPTIONS");
+		helpFormatter.setHeader("Application to simulate coexistence, competition and cooperation in an epithelium.");
+		helpFormatter.format(std::cout);
+	}
+	
+	void defineProperty(const std::string& def)
+	{
+		std::string name;
+		std::string value;
+		std::string::size_type pos = def.find('=');
+		if (pos != std::string::npos)
+		{
+			name.assign(def, 0, pos);
+			value.assign(def, pos + 1, def.length() - pos);
+		}
+		else name = def;
+		config().setString(name, value);
+	}
+
+	int main(const std::vector<std::string>& args)
+	{
+		if (!_helpRequested)
+		{
+			logger().information("Arguments to main():");
+			for (std::vector<std::string>::const_iterator it = args.begin(); it != args.end(); ++it)
+			{
+				logger().information(*it);
+			}
+			logger().information("Application properties:");
+			printProperties("");
+      try {
+        cout << "Under development!" << endl;
+      } catch(exception& e) {
+          cerr << "error: " << e.what() << "\n";
+          return 1;
+      }
+      catch(...) {
+          cerr << "Exception of unknown type!\n";
+      }
+		}
+		return Application::EXIT_OK;
+	}
+	
+	void printProperties(const std::string& base)
+	{
+		AbstractConfiguration::Keys keys;
+		config().keys(base, keys);
+		if (keys.empty())
+		{
+			if (config().hasProperty(base))
+			{
+				std::string msg;
+				msg.append(base);
+				msg.append(" = ");
+				msg.append(config().getString(base));
+				logger().information(msg);
+			}
+		}
+		else
+		{
+			for (AbstractConfiguration::Keys::const_iterator it = keys.begin(); it != keys.end(); ++it)
+			{
+				std::string fullKey = base;
+				if (!fullKey.empty()) fullKey += '.';
+				fullKey.append(*it);
+				printProperties(fullKey);
+			}
+		}
+	}
+
+private:
+	bool _helpRequested;
+};
+
+POCO_APP_MAIN(FriendsOrFoesApp)

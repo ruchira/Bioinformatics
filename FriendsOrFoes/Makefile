@@ -3,7 +3,9 @@ CXXLD = g++
 CXXFLAGS = -O2
 CXXCOMPILE = $(CXX) $(CXXFLAGS)
 CXXLINK = $(CXXLD) $(CXXFLAGS) -o $@
-INCLUDES = /usr/include/g++
+INCLUDES = -I/usr/include/g++ -I../lib/poco/Util/include
+LIB_PATH = -L../lib/poco/lib/Linux/x86_64
+LIBS = -lPocoUtil
 
 SOURCES = friends_or_foes.cpp
 
@@ -15,7 +17,7 @@ friends_or_foes.cpp: friends_or_foes.h
 
 friends_or_foes: $(OBJECTS)
 	@rm -f friends_or_foes
-	$(CXXLINK) $(OBJECTS) $(INCLUDE_PATH) $(DEFINES) $(LIBS)
+	$(CXXLINK) $(OBJECTS) $(INCLUDE_PATH) $(DEFINES) $(LIB_PATH) $(LIBS)
 
 .cpp.o:
 	$(CXXCOMPILE) $(INCLUDE_PATH) $(DEFINES) -c -o $@ $<
