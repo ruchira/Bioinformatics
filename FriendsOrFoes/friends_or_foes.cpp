@@ -33,6 +33,7 @@
 #include <limits>
 #include <math.h>
 #include <stdlib.h>
+#include <fstream>
 #include <sstream>
 
 #include "Poco/Util/Application.h"
@@ -390,21 +391,25 @@ protected:
 		if (!_helpRequested)
 		{
       set_values_from_config_with_defaults();
-			printProperties("fof");
+      ofstream ostrm;
+      ostrm.open(output_file_name.c_str(), ios::out);
+			printProperties("fof", ostrm);
       try {
-        cout << "Under development!" << endl;
+        ostrm.close();
       } catch(exception& e) {
           cerr << "error: " << e.what() << "\n";
+          ostrm.close();
           return 1;
       }
       catch(...) {
           cerr << "Exception of unknown type!\n";
+          ostrm.close();
       }
 		}
 		return Application::EXIT_OK;
 	}
 	
-	void printProperties(const string& base) {
+	void printProperties(const string& base, ostream &ostrm) {
 		AbstractConfiguration::Keys keys;
 		config().keys(base, keys);
 		if (keys.empty())
@@ -416,6 +421,7 @@ protected:
 				msg.append(" = ");
 				msg.append(config().getString(base));
 				logger().information(msg);
+        ostrm << msg << endl;
 			}
 		}
 		else
@@ -426,7 +432,7 @@ protected:
 				string fullKey = base;
 				if (!fullKey.empty()) fullKey += '.';
 				fullKey.append(*it);
-				printProperties(fullKey);
+				printProperties(fullKey, ostrm);
 			}
 		}
 	}
