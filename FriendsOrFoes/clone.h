@@ -30,7 +30,6 @@
 // DAMAGE.
 #ifndef CLONE_H
 #define CLONE_H
-#include "friends_or_foes.h"
 #include <map>
 
 using namespace std;

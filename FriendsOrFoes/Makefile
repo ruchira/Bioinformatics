@@ -7,13 +7,15 @@ INCLUDES = -I/usr/include/g++ -I../lib/poco/Util/include
 LIB_PATH = -L../lib/poco/lib/Linux/x86_64
 LIBS = -lPocoFoundation -lPocoUtil -lm
 
-SOURCES = friends_or_foes.cpp
+SOURCES = friends_or_foes.cpp population.cpp
 
-OBJECTS = friends_or_foes.o
+OBJECTS = friends_or_foes.o population.o
 
 all: friends_or_foes
 
 friends_or_foes.cpp: friends_or_foes.h clone.h
+
+population.cpp: population.h cell.h
 
 friends_or_foes: $(OBJECTS)
 	@rm -f friends_or_foes
