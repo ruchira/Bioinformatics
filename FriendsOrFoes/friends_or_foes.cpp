@@ -33,6 +33,7 @@
 #include <limits>
 #include <math.h>
 #include <stdlib.h>
+#include <sstream>
 
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
@@ -60,12 +61,12 @@ const pair<float,float> unit_diagonal = make_pair(0.5,
 
 class FriendsOrFoesApp: public Application {
 public:
-  FriendsOrFoesApp(): _helpRequested(false) {
+  FriendsOrFoesApp(): _helpRequested(false), output_file_name("") {
   }
 
 protected:
 	void initialize(Application& self) {
-    num_clones = 0;  
+    set_num_clones(2);
 		loadConfiguration(); // load default configuration files, if present
 		Application::initialize(self);
 	}
@@ -89,28 +90,29 @@ protected:
                                               &FriendsOrFoesApp::handleHelp)));
 
     options.addOption(
-      Option("width", "w", "width in cells of the initial grid")
+      Option("output_file_base", "o", "base of the output file")
         .required(false)
         .repeatable(false)
-				.argument("value", true)
-        .validator(new IntValidator(1,numeric_limits<int>::max()))
-        .binding("fof.width"));
+        .argument("file")
+        .callback(OptionCallback<FriendsOrFoesApp>(this,
+                                        &FriendsOrFoesApp::handleOutputFile)));
+
+		options.addOption(
+			Option("config_file", "c", "load configuration data from a file")
+				.required(false)
+				.repeatable(true)
+				.argument("file")
+				.callback(OptionCallback<FriendsOrFoesApp>(this, 
+                                            &FriendsOrFoesApp::handleConfig)));
 
     options.addOption(
-      Option("height", "h", "height in cells of the initial grid")
+      Option("num_clones", "n", "number of clones")
         .required(false)
         .repeatable(false)
         .argument("value", true)
         .validator(new IntValidator(1,numeric_limits<int>::max()))
-        .binding("fof.height"));
-
-    options.addOption(
-      Option("maximum_time", "T", "maximum time step of the simulation")
-        .required(false)
-        .repeatable(false)
-        .argument("value", true)
-        .validator(new IntValidator(1,numeric_limits<int>::max()))
-        .binding("fof.maximum_time"));
+        .callback(OptionCallback<FriendsOrFoesApp>(this,
+                                          &FriendsOrFoesApp::handleNumClones)));
 
     options.addOption(
       Option("rigid", "r", "use a rigid grid")
@@ -127,13 +129,28 @@ protected:
         .binding("fof.voronoi"));
 
     options.addOption(
-      Option("num_clones", "n", "number of clones")
+      Option("maximum_time", "T", "maximum time step of the simulation")
         .required(false)
         .repeatable(false)
         .argument("value", true)
         .validator(new IntValidator(1,numeric_limits<int>::max()))
-        .callback(OptionCallback<FriendsOrFoesApp>(this,
-                                          &FriendsOrFoesApp::handleNumClones)));
+        .binding("fof.maximum_time"));
+
+    options.addOption(
+      Option("width", "w", "width in cells of the initial grid")
+        .required(false)
+        .repeatable(false)
+				.argument("value", true)
+        .validator(new IntValidator(1,numeric_limits<int>::max()))
+        .binding("fof.width"));
+
+    options.addOption(
+      Option("height", "h", "height in cells of the initial grid")
+        .required(false)
+        .repeatable(false)
+        .argument("value", true)
+        .validator(new IntValidator(1,numeric_limits<int>::max()))
+        .binding("fof.height"));
 
     options.addOption(
       Option("minimum_divisible_area", "a", 
@@ -167,7 +184,7 @@ protected:
         .repeatable(true)
         .argument("clone_number:coefficient", true)
         .callback(OptionCallback<FriendsOrFoesApp>(this, 
-                                            &FriendsOrFoesApp::handleReproductionCoefficient)));
+                            &FriendsOrFoesApp::handleReproductionCoefficient)));
 
     options.addOption(
       Option("cellwise_interaction", "E", 
@@ -176,7 +193,7 @@ protected:
       .repeatable(true)
       .argument("clone_number_0,clone_number_1:increment", true)
         .callback(OptionCallback<FriendsOrFoesApp>(this, 
-                                            &FriendsOrFoesApp::handleCellwiseInteraction)));
+                                &FriendsOrFoesApp::handleCellwiseInteraction)));
 
     options.addOption(
       Option("fitnesswise_interaction", "F", 
@@ -185,14 +202,7 @@ protected:
       .repeatable(true)
       .argument("clone_number_0,clone_number_1:fraction", true)
         .callback(OptionCallback<FriendsOrFoesApp>(this, 
-                                            &FriendsOrFoesApp::handleFitnesswiseInteraction)));
-
-		options.addOption(
-			Option("config-file", "f", "load configuration data from a file")
-				.required(false)
-				.repeatable(true)
-				.argument("file")
-				.callback(OptionCallback<FriendsOrFoesApp>(this, &FriendsOrFoesApp::handleConfig)));
+                            &FriendsOrFoesApp::handleFitnesswiseInteraction)));
 
 	}
 	
@@ -201,9 +211,18 @@ protected:
 		displayHelp();
 		stopOptionsProcessing();
 	}
+
+	void handleConfig(const string& name, const string& value) {
+		loadConfiguration(value, PRIO_APPLICATION);
+	}
+
+  void handleOutputFile(const string& name, const string& value) {
+    output_file_name = value;
+    config().setString("fof.output_file_base", value);
+  }
 	
   void handleNumClones(const string& name, const string& value) {
-    config().setString("fof." + name, value);
+    config().setString("fof.num_clones", value);
     set_num_clones(strtol(value.c_str(), NULL, 10));
   }
 
@@ -232,7 +251,7 @@ protected:
       string::size_type col_pos = value.find(',');
       if (col_pos != string::npos) {
         row.assign(value, 0, col_pos);
-        col.assign(value, col_pos + 1, entry_pos - col_pos);
+        col.assign(value, col_pos + 1, entry_pos - col_pos - 1);
         i = strtol(row.c_str(), NULL, 10);
         j = strtol(col.c_str(), NULL, 10);
         x = strtof(entry.c_str(), NULL);
@@ -246,8 +265,7 @@ protected:
     float x;
     parseVectorEntry(name, value, i, x);
     clone_ptrs.at(i)->set_default_fitness(x);
-  }
-
+  } 
   void handleSurvivalCoefficient(const string& name, 
                                   const string& value) {
     int i;
@@ -280,10 +298,6 @@ protected:
     parseMatrixEntry(name, value, i, j, x);
     clone_ptrs.at(i)->set_linear_effect_of_clone(clone_ptrs.at(j), x);
   }
-
-	void handleConfig(const string& name, const string& value) {
-		loadConfiguration(value);
-	}
 		
 	void displayHelp() {
 		HelpFormatter helpFormatter(options());
@@ -294,29 +308,89 @@ protected:
 		helpFormatter.format(cout);
 	}
 	
-	void defineProperty(const string& def) {
-		string name;
-		string value;
-		string::size_type pos = def.find('=');
-		if (pos != string::npos)
-		{
-			name.assign(def, 0, pos);
-			value.assign(def, pos + 1, def.length() - pos);
-		}
-		else name = def;
-		config().setString(name, value);
-	}
+  void set_values_from_config_with_defaults(void) {
+    if (!config().hasProperty("fof.num_clones")) {
+      stringstream strvalue;
+      strvalue << num_clones;
+      config().setString("fof.num_clones", strvalue.str());
+    }
+    if (!config().hasProperty("fof.rigid") 
+        && !config().hasProperty("fof.voronoi")) {
+      config().setString("fof.rigid", "");
+    }
+    if (config().hasProperty("fof.voronoi")) {
+      is_rigid = false;
+    } else {
+      is_rigid = true;
+    }
+    if (!config().hasProperty("fof.output_file_base")) {
+      config().setString("fof.output_file_base", "friends_or_foes_output");
+    }
+    if (!config().hasProperty("fof.maximum_time")) {
+      config().setString("fof.maximum_time", "5000");
+    }
+    maximum_time = strtol(config().getString("fof.maximum_time").c_str(), NULL, 
+                          10);
+    output_file_name = config().getString("fof.output_file_base") 
+                      + (is_rigid ? ".hxg" : ".flx");
+    if (!config().hasProperty("fof.width")) {
+      config().setString("fof.width", "1500");
+    }
+    if (!config().hasProperty("fof.height")) {
+      config().setString("fof.height", "2000");
+    }
+    if (!is_rigid && !config().hasProperty("fof.minimum_divisible_area")) {
+      config().setString("fof.minimum_divisible_area", "5.0");
+    }
+    for (int i = 0; i < num_clones; ++i) {
+      stringstream default_fitness_name;
+      default_fitness_name << "fof.default_fitness_" << i;
+      if (!config().hasProperty(default_fitness_name.str())) {
+        stringstream strvalue;
+        strvalue << clone_ptrs[i]->get_default_fitness();
+        config().setString(default_fitness_name.str(), strvalue.str());
+      }
+      stringstream survival_coefficient_name;
+      survival_coefficient_name << "fof.survival_coefficient_" << i;
+      if (!config().hasProperty(survival_coefficient_name.str())) {
+        stringstream strvalue;
+        strvalue << clone_ptrs[i]->get_survival_coefficient();
+        config().setString(survival_coefficient_name.str(), strvalue.str());
+      }
+      stringstream reproduction_coefficient_name;
+      reproduction_coefficient_name << "fof.reproduction_coefficient_" << i;
+      if (!config().hasProperty(reproduction_coefficient_name.str())) {
+        stringstream strvalue;
+        strvalue << clone_ptrs[i]->get_reproduction_coefficient();
+        config().setString(reproduction_coefficient_name.str(), strvalue.str());
+      }
+      for (int j = 0; j < num_clones; ++j) {
+        stringstream cellwise_interaction_name;
+        cellwise_interaction_name << "fof.cellwise_interaction_"  << i 
+                                                                  << "_" << j;
+        if (!config().hasProperty(cellwise_interaction_name.str())) {
+          stringstream strvalue;
+          strvalue<< clone_ptrs[i]->get_constant_effect_of_clone(clone_ptrs[j]);
+          config().setString(cellwise_interaction_name.str(), strvalue.str());
+        }
+        stringstream fitnesswise_interaction_name;
+        fitnesswise_interaction_name << "fof.fitnesswise_interaction_"  << i 
+                                                                  << "_" << j;
+        if (!config().hasProperty(fitnesswise_interaction_name.str())) {
+          stringstream strvalue;
+          strvalue << clone_ptrs[i]->get_linear_effect_of_clone(clone_ptrs[j]);
+          config().setString(fitnesswise_interaction_name.str(),
+                            strvalue.str());
+        }
+      }
+    }
+  }
 
 	int main(const vector<string>& args) {
 		if (!_helpRequested)
 		{
-			logger().information("Arguments to main():");
-			for (vector<string>::const_iterator it = args.begin(); it != args.end(); ++it)
-			{
-				logger().information(*it);
-			}
-			logger().information("Application properties:");
-			printProperties("");
+      set_values_from_config_with_defaults();
+			printProperties("fof");
       try {
         cout << "Under development!" << endl;
       } catch(exception& e) {
@@ -346,7 +420,8 @@ protected:
 		}
 		else
 		{
-			for (AbstractConfiguration::Keys::const_iterator it = keys.begin(); it != keys.end(); ++it)
+			for (AbstractConfiguration::Keys::const_iterator it = keys.begin(); 
+          it != keys.end(); ++it)
 			{
 				string fullKey = base;
 				if (!fullKey.empty()) fullKey += '.';
@@ -360,10 +435,17 @@ protected:
     return num_clones;
   }
 
+  bool get_is_rigid() {
+    return is_rigid;
+  }
+
 private:
 	bool _helpRequested;
   int num_clones;
   vector<Clone *> clone_ptrs;
+  string output_file_name;
+  bool is_rigid;
+  int maximum_time;
 
   void set_num_clones(int new_num_clones) {
     if (new_num_clones != num_clones) {
