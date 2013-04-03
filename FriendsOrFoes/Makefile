@@ -15,7 +15,7 @@ all: friends_or_foes
 
 friends_or_foes.cpp: friends_or_foes.h clone.h
 
-population.cpp: population.h cell.h
+population.cpp: population.h cell.h clone.h
 
 friends_or_foes: $(OBJECTS)
 	@rm -f friends_or_foes

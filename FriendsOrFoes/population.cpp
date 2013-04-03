@@ -30,7 +30,7 @@
 // DAMAGE.
 #include "population.h"
 
-void * count_cells(const Cell &cell, void * counter_ptr) {
+void * count_cells(void * counter_ptr, const Cell &cell) {
   (*( (int *) counter_ptr ) )++;
   return counter_ptr;
 }
@@ -41,7 +41,7 @@ int Population::get_num_cells(Clone *filter_clone) const {
   return result;
 }
 
-void * sum_volume_of_cells(const Cell &cell, void * cumulative_volume_ptr) {
+void * sum_volume_of_cells(void * cumulative_volume_ptr, const Cell &cell) {
   (*( (float *) cumulative_volume_ptr ) ) += cell.get_volume();
   return cumulative_volume_ptr;
 }
@@ -52,7 +52,7 @@ float Population::get_volume(Clone *filter_clone) const {
   return result;
 }
 
-void * has_neighbors(const Cell &cell, const Cell &neighbor, void * flag_ptr) {
+void * has_neighbors(void * flag_ptr, const Cell &cell, const Cell &neighbor) {
   *( (bool *) flag_ptr ) = true;
   return flag_ptr;
 }
@@ -72,7 +72,7 @@ struct AdjacentCountResult {
   int num_cells_adjacent_to_neighbor_clone;
 };
 
-void * count_cells_adjacent_to_clone(const Cell &cell, void *count_ptr) {
+void * count_cells_adjacent_to_clone(void *count_ptr, const Cell &cell) {
   AdjacentCountResult *result_ptr = (AdjacentCountResult *)count_ptr;
   if (result_ptr->population.is_adjacent_to_clone(cell,
                                                 result_ptr->neighbor_clone)) {
@@ -97,15 +97,15 @@ struct BoundarySizeResult {
   float boundary_size;
 };
 
-void *sum_cell_neighbor_interface(const Cell &cell0, const Cell&cell1, 
-                                  void *data) {
+void *sum_cell_neighbor_interface(void *data, const Cell &cell0, 
+                                              const Cell&cell1) {
   BoundarySizeResult *result_ptr = (BoundarySizeResult *)data;
   result_ptr->boundary_size += 
       result_ptr->population.get_size_of_interface_between_cells(cell0, cell1);
   return result_ptr;
 }
 
-void *sum_interface_of_cell_to_other_clones(const Cell &cell, void *data) {
+void *sum_interface_of_cell_to_other_clones(void *data, const Cell &cell) {
   BoundarySizeResult *result_ptr = (BoundarySizeResult *)data;
   result_ptr->population.const_fold_neighbors(
     &sum_cell_neighbor_interface, cell, result_ptr, &(result_ptr->clone),

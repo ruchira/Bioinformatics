@@ -72,30 +72,30 @@ class Population {
     // every cell, if filter_clone is NULL; or every cell in the population not
     // belonging to the clone filter_clone, if negate_filter is true), this
     // will call the function func.  The first time, it will pass
-    // initial_value_ptr as the second argument to func.  Subsequently it will
-    // pass the return value from the previous call to func as the second
+    // initial_value_ptr as the first argument to func.  Subsequently it will
+    // pass the return value from the previous call to func as the first
     // argument to the next call to func.  It returns the return value of the
     // last call to func.
-    virtual void * fold(function<void * (Cell &, void *)> func, 
+    virtual void * fold(function<void * (void *, Cell &)> func, 
                         void * initial_value_ptr, 
                         const Clone * filter_clone = NULL,
                         bool negate_filter = false) = 0;
     // This is like fold except the order of the cells is guaranteed to be
     // random.
-    virtual void * fold_in_random_order(function<void * (Cell &, void *)> func,
+    virtual void * fold_in_random_order(function<void * (void *, Cell &)> func,
                                         void * initial_value_ptr,
                                         const Clone * filter_clone = NULL,
                                         bool negate_filter = false) = 0;
     // This is like fold except const, as far as the population of cells is
     // concerned.
-    virtual void * const_fold(function<void * (const Cell &, void *)> func, 
+    virtual void * const_fold(function<void * (void *, const Cell &)> func, 
                               void * initial_value_ptr, 
                               const Clone * filter_clone = NULL,
                               bool negate_filter = false) const = 0;
     // This is like fold_in_random_order except const, as far as the population
     // of cells is concerned.
     virtual void * const_fold_in_random_order(
-                                  function<void * (const Cell &, void *)> func,
+                                  function<void * (void *, const Cell &)> func,
                                   void * initial_value_ptr,
                                   const Clone * filter_clone = NULL,
                                   bool negate_filter = false) const = 0;
@@ -132,14 +132,14 @@ class Population {
     // filter_neighbor_clone (or each of the neighbors of the argument cell, if
     // filter_neighbor_clone is NULL; or each of the neighbors of the argument
     // cell not belonging to filter_clone, if negate_filter is true), this will
-    // call the function func with cell as the first argument and a reference
-    // to the neighbor as the second argument.  The first time, it will pass
-    // initial_value_ptr as the third argument to func.  Subsequently it will
-    // pass the return value from the previous call to func as the third
+    // call the function func with cell as the second argument and a reference
+    // to the neighbor as the third argument.  The first time, it will pass
+    // initial_value_ptr as the first argument to func.  Subsequently it will
+    // pass the return value from the previous call to func as the first
     // argument to the next call to func.  It returns the return value of the
     // last call to func.
     virtual void * fold_neighbors(
-                                function<void * (Cell &, Cell &, void *)> func, 
+                                function<void * (void *, Cell &, Cell &)> func, 
                                 Cell &cell,
                                 void * initial_value_ptr, 
                                 const Clone * filter_neighbor_clone = NULL,
@@ -147,7 +147,7 @@ class Population {
     // This is like fold_neighbors except the order of the neighbors is
     // guaranteed to be random.
     virtual void * fold_neighbors_in_random_order(
-                                function<void * (Cell &, Cell &, void *)> func, 
+                                function<void * (void *, Cell &, Cell &)> func, 
                                 Cell &cell,
                                 void * initial_value_ptr, 
                                 const Clone * filter_neighbor_clone = NULL,
@@ -155,7 +155,7 @@ class Population {
     // This is like fold_neighbors except const, as far as the population of
     // cells is concerned.
     virtual void * const_fold_neighbors(
-                    function<void * (const Cell &, const Cell &, void *)> func, 
+                    function<void * (void *, const Cell &, const Cell &)> func, 
                     const Cell &cell,
                     void * initial_value_ptr, 
                     const Clone * filter_neighbor_clone = NULL,
@@ -163,7 +163,7 @@ class Population {
     // This is like fold_neighbors_in_random_order except const, as far as the
     // population of cells is concerned.
     virtual void * const_fold_neighbors_in_random_order(
-                    function<void * (const Cell &, const Cell &, void *)> func, 
+                    function<void * (void *, const Cell &, const Cell &)> func, 
                     const Cell &cell,
                     void * initial_value_ptr, 
                     const Clone * filter_neighbor_clone = NULL,
