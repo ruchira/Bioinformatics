@@ -53,13 +53,9 @@ class Cell {
       previous_fitness = fitness;
       fitness = clone_ptr->get_default_fitness();
     };
-    void get_affected_by_neighbors(Cell &neighbor) {
-      if (alive && neighbor.is_alive()) {
-        fitness += clone_ptr->get_constant_effect_of_clone(neighbor.clone_ptr);
-        // We use the previous fitness here so that the order of enumerating
-        // the cells won't matter.
-        fitness += clone_ptr->get_linear_effect_of_clone(neighbor.clone_ptr)
-                  * neighbor.get_previous_fitness();
+    void increment_fitness_by(float fitness_increment) {
+      if (alive) {
+        fitness += fitness_increment;
       }
     }
     bool is_alive(void) const { return alive; };

@@ -35,10 +35,26 @@
 
 using std::tr1::function;
 
+void neighbor_affect_cell_through_affine_function(Cell &cell, Cell &neighbor) {
+  if (cell.is_alive() && neighbor.is_alive()) {
+    cell.increment_fitness_by(
+      cell.get_clone_ptr()->get_constant_effect_of_clone(
+                                                    neighbor.get_clone_ptr()));
+    // We use the previous fitness here so that the order of enumerating
+    // the cells won't matter.
+    cell.increment_fitness_by(
+      cell.get_clone_ptr()->get_linear_effect_of_clone(neighbor.get_clone_ptr())
+              * neighbor.get_previous_fitness());
+  }
+}
+
 class Population {
   public:
-    Population(int width, int height, int depth=1) : 
-        initial_width(width), initial_height(height), initial_depth(depth) {};
+    Population(int width, int height, int depth=1,
+          function<void(Cell &, Cell &)> func
+            =neighbor_affect_cell_through_affine_function) : 
+        initial_width(width), initial_height(height), initial_depth(depth),
+        neighbor_affect_cell_func(func) {};
     virtual ~Population();
     int get_initial_width(void) const { return initial_width; };
     int get_initial_height(void) const { return initial_height; };
@@ -192,6 +208,7 @@ class Population {
     virtual void kill(Cell &cell) {
       cell.kill();
     };
+    virtual void update_all_fitnesses(void);
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
     virtual void *check_for_space_to_replicate(const Cell &cell) const = 0;
@@ -199,8 +216,14 @@ class Population {
     // replication in replication_record.
     virtual void replicate(Cell &cell, void *space_specification,
                           ReplicationRecord &replication_record) = 0;
+    function<void(Cell &, Cell &)> &get_neighbor_affect_cell_func(void) {
+      return neighbor_affect_cell_func;
+    }
   private:
     int initial_width, initial_height, initial_depth;
+    // The second argument is the neighbor which is affecting the first
+    // argument.
+    function<void(Cell &, Cell &)> neighbor_affect_cell_func;
 };
 
 #endif

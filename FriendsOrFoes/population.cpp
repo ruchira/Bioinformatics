@@ -120,3 +120,19 @@ float Population::get_size_of_boundary_of_clone(
   const_fold(&sum_interface_of_cell_to_other_clones, &result, &clone);
   return result.boundary_size;
 }
+
+void *update_fitness(void *data, Cell &cell) {
+  if (cell.is_alive()) {
+    cell.reset_fitness();
+    Population *population_ptr;
+    population_ptr = (Population *)data;
+    population_ptr->map_neighbors(
+                        population_ptr->get_neighbor_affect_cell_func(), cell);
+  }
+  return data;
+}
+
+void Population::update_all_fitnesses(void) {
+  fold(update_fitness, this);
+}
+
