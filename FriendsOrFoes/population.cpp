@@ -121,18 +121,20 @@ float Population::get_size_of_boundary_of_clone(
   return result.boundary_size;
 }
 
-void *update_fitness(void *data, Cell &cell) {
+void Population::update_fitness(Cell &cell) {
   if (cell.is_alive()) {
     cell.reset_fitness();
-    Population *population_ptr;
-    population_ptr = (Population *)data;
-    population_ptr->map_neighbors(
-                        population_ptr->get_neighbor_affect_cell_func(), cell);
+    map_neighbors(get_neighbor_affect_cell_func(), cell);
   }
+}
+
+void *update_fitness_func(void *data, Cell &cell) {
+  Population *population_ptr = (Population *)data;
+  population_ptr->update_fitness(cell);
   return data;
 }
 
 void Population::update_all_fitnesses(void) {
-  fold(update_fitness, this);
+  fold(update_fitness_func, this);
 }
 

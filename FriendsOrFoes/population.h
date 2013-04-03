@@ -208,6 +208,7 @@ class Population {
     virtual void kill(Cell &cell) {
       cell.kill();
     };
+    virtual void update_fitness(Cell &cell);
     virtual void update_all_fitnesses(void);
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
