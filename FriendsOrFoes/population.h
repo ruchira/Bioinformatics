@@ -189,6 +189,9 @@ class Population {
     virtual float get_size_of_boundary_of_clone(const Clone &clone) const;
     virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
                                     const Clone &neighbor_clone) const = 0;
+    virtual void kill(Cell &cell) {
+      cell.kill();
+    };
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
     virtual void *check_for_space_to_replicate(const Cell &cell) const = 0;
