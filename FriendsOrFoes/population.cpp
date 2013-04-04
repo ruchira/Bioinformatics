@@ -30,6 +30,18 @@
 // DAMAGE.
 #include "population.h"
 
+void neighbor_affect_cell_through_affine_function(Cell &cell, Cell &neighbor) {
+  if (cell.is_alive() && neighbor.is_alive()) {
+    cell.increment_fitness_by(
+      cell.get_clone_ptr()->get_constant_effect_of_clone(
+                                                    neighbor.get_clone_ptr()));
+    // We use the previous fitness here so that the order of enumerating
+    // the cells won't matter.
+    cell.increment_fitness_by(
+      cell.get_clone_ptr()->get_linear_effect_of_clone(neighbor.get_clone_ptr())
+              * neighbor.get_previous_fitness());
+  }
+}
 void * count_cells(void * counter_ptr, const Cell &cell) {
   (*( (int *) counter_ptr ) )++;
   return counter_ptr;
