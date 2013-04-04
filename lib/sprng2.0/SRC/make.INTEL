@@ -6,13 +6,13 @@ RANLIB = ranlib
 CC = gcc
 CLD = $(CC)
 # Set f77 to echo if you do not have a FORTRAN compiler
-F77 = g77
+F77 = gfortran
 #F77 = echo
 F77LD = $(F77)
-FFXN = -DAdd__
+FFXN = -DAdd_
 FSUFFIX = F
 
-MPIF77 = mpif77
+MPIF77 = mpif90
 MPICC = mpicc
 
 # To use MPI, set the MPIDIR to location of mpi library, and MPILIB 
@@ -23,11 +23,14 @@ MPICC = mpicc
 # COMMENTED BY ME
 #MPIDIR = -L/usr/local/mpi/build/LINUX/ch_p4/lib
 #MPILIB = -lmpich
+MPIDIR = -L/usr/lib/openmpi/lib
+MPILIB = -lmpi
 
 # Please include mpi header file path, if needed
+MPIDEF = -I/usr/lib/openmpi/include -I /usr/lib/openmpi/include/openmpi -pthread
 
 #CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  -I/usr/local/mpi/include -I/usr/local/mpi/build/LINUX/ch_p4/include
-CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  
+CFLAGS = -O3 -DLittleEndian $(PMLCGDEF) $(MPIDEF) -D$(PLAT) -Wno-unused-result
 CLDFLAGS =  -O3 
 #FFLAGS = -O3 $(PMLCGDEF) $(MPIDEF) -D$(PLAT)  -I/usr/local/mpi/include -I/usr/local/mpi/build/LINUX/ch_p4/include -I.
 FFLAGS = -O3 $(PMLCGDEF) $(MPIDEF) -D$(PLAT)
