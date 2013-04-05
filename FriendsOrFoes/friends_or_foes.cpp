@@ -380,28 +380,6 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
     }
   }
 }
-
-int FriendsOrFoesApp::main(const vector<string>& args) {
-  if (!_helpRequested)
-  {
-    set_values_from_config_with_defaults();
-    ofstream ostrm;
-    ostrm.open(output_file_name.c_str(), ios::out);
-    printProperties("fof", ostrm);
-    try {
-      ostrm.close();
-    } catch(exception& e) {
-        cerr << "error: " << e.what() << "\n";
-        ostrm.close();
-        return 1;
-    }
-    catch(...) {
-        cerr << "Exception of unknown type!\n";
-        ostrm.close();
-    }
-  }
-  return Application::EXIT_OK;
-}
 	
 void FriendsOrFoesApp::printProperties(const string& base, ostream &ostrm) const 
 {
@@ -447,5 +425,3 @@ void FriendsOrFoesApp::set_num_clones(int new_num_clones) {
     }
   }
 }
-
-POCO_APP_MAIN(FriendsOrFoesApp)

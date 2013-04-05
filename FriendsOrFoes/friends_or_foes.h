@@ -87,8 +87,6 @@ protected:
   bool is_rigid;
   int maximum_time;
 
-  int main(const vector<string>& args);
-private:
 	bool _helpRequested;
 };
 

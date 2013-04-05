@@ -8,12 +8,17 @@ LIB_PATH = -L../lib/poco/lib/Linux/x86_64
 LIBS = -lPocoFoundation -lPocoUtil -lm 
 
 COMMON_SOURCES = friends_or_foes.cpp population.cpp
-RUN_SOURCES = probability.cpp cell_cycle.cpp ../lib/RngStream/RngStream.cpp
+
+RUN_SOURCES = probability.cpp cell_cycle.cpp ../lib/RngStream/RngStream.cpp run_friends_or_foes.cpp
 
 COMMON_OBJECTS = friends_or_foes.o population.o
-RUN_OBJECTS = probability.o cell_cycle.o ../lib/RngStream/RngStream.o
+RUN_OBJECTS = probability.o cell_cycle.o ../lib/RngStream/RngStream.o run_friends_or_foes.o
 
 all: run_friends_or_foes
+
+run_friends_or_foes.o: run_friends_or_foes.cpp run_friends_or_foes.h
+
+run_friends_or_foes.h: friends_or_foes.h
 
 friends_or_foes.o: friends_or_foes.cpp friends_or_foes.h clone.h
 
@@ -31,5 +36,5 @@ run_friends_or_foes: $(COMMON_OBJECTS) $(RUN_OBJECTS)
 	$(CXXCOMPILE) $(INCLUDES) $(DEFINES) -c -o $@ $<
 
 clean:
-	@rm -f friends_or_foes $(OBJECTS)
+	@rm -f run_friends_or_foes $(OBJECTS)
 
