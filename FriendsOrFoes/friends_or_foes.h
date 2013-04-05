@@ -60,7 +60,7 @@ protected:
 	void uninitialize();
 	void reinitialize(Application& self);
 
-  void defineOptions(OptionSet& options);
+  virtual void defineOptions(OptionSet& options);
 
 	void handleHelp(const string& name, const string& value);
 	void handleConfig(const string& name, const string& value);
