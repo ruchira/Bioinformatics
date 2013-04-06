@@ -66,6 +66,7 @@ protected:
 	void handleConfig(const string& name, const string& value);
   void handleOutputFile(const string& name, const string& value);
   void handleNumClones(const string& name, const string& value);
+  void handleRandomSeed(const string& name, const string& value);
   void parseVectorEntry(const string& name, const string& value, 
                         int &i, float &x);
   void parseMatrixEntry(const string& name, const string& value, 
@@ -86,6 +87,7 @@ protected:
   string output_file_name;
   bool is_rigid;
   int maximum_time;
+  unsigned long random_seed;
 
 	bool _helpRequested;
 };

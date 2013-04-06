@@ -129,6 +129,14 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .binding("fof.maximum_time"));
 
   options.addOption(
+    Option("random_seed", "r", "seed for the random number generator")
+      .required(false)
+      .repeatable(false)
+      .argument("value", true)
+      .validator(new IntValidator(1,numeric_limits<unsigned long>::max()))
+      .binding("fof.random_seed"));
+
+  options.addOption(
     Option("width", "w", "width in cells of the initial grid")
       .required(false)
       .repeatable(false)
@@ -309,6 +317,11 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
     strvalue << num_clones;
     config().setString("fof.num_clones", strvalue.str());
   }
+  if (!config().hasProperty("fof.random_seed")) {
+    config().setString("fof.random_seed", "12345");
+  }
+  random_seed = strtoul(config().getString("fof.random_seed").c_str(), NULL, 
+                        10);
   if (!config().hasProperty("fof.rigid") 
       && !config().hasProperty("fof.voronoi")) {
     config().setString("fof.rigid", "");

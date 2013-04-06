@@ -51,7 +51,7 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
       // reconstruct them....
       MPI_Init(NULL, NULL);
 #endif
-      Random::initialize();
+      Random::initialize(random_seed);
     } catch(exception& e) {
         cerr << "error: " << e.what() << "\n";
         ostrm.close();
