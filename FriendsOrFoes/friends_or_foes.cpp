@@ -136,7 +136,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(1,numeric_limits<int>::max()))
+      .validator(new IntValidator(2,numeric_limits<int>::max()))
       .binding("fof.width"));
 
   options.addOption(
