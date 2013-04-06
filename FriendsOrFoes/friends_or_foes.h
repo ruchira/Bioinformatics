@@ -36,14 +36,10 @@
 #include "Poco/Util/OptionSet.h"
 #include "clone.h"
 
-#include <utility>
 #include <iostream>
 #include <vector>
 using namespace std;
 using namespace Poco::Util;
-
-extern const float square_root_of_three;
-extern const pair<float, float> unit_diagonal;
 
 class FriendsOrFoesApp: public Application {
 public:

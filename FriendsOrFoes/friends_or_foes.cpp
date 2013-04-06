@@ -31,7 +31,6 @@
 #include "friends_or_foes.h"
 
 #include <limits>
-#include <math.h>
 #include <stdlib.h>
 #include <fstream>
 #include <sstream>
@@ -52,10 +51,6 @@ using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::Util::IntValidator;
 using Poco::AutoPtr;
-
-const float square_root_of_three = sqrt(3.0);
-const pair<float,float> unit_diagonal = make_pair(0.5,
-                                                  0.5 * square_root_of_three);
 
 void FriendsOrFoesApp::initialize(Application& self) {
   set_num_clones(2);
