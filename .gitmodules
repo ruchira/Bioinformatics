@@ -1,3 +1,4 @@
 [submodule "lib/poco"]
 	path = lib/poco
 	url = https://github.com/pocoproject/poco.git
+  ignore = dirty
