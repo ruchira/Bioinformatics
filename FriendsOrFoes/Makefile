@@ -1,6 +1,6 @@
-CXX = g++
-CXXLD = g++
-CXXFLAGS = -O2
+CXX = mpicxx
+CXXLD = mpicxx
+CXXFLAGS = -O2 -DUSING_MPI
 CXXCOMPILE = $(CXX) $(CXXFLAGS)
 CXXLINK = $(CXXLD) $(CXXFLAGS) -o $@
 INCLUDES = -I/usr/include/g++ -I../lib/poco/Util/include -I../include -I../include
@@ -36,5 +36,5 @@ run_friends_or_foes: $(COMMON_OBJECTS) $(RUN_OBJECTS)
 	$(CXXCOMPILE) $(INCLUDES) $(DEFINES) -c -o $@ $<
 
 clean:
-	@rm -f run_friends_or_foes $(OBJECTS)
+	@rm -f run_friends_or_foes $(COMMON_OBJECTS) $(RUN_OBJECTS)
 

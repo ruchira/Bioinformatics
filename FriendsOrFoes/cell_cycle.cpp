@@ -40,7 +40,8 @@ void CellCycle::check_survival(Cell &cell) {
     if (survival_probability == 1.0) {
       return;
     }
-    if (survival_probability == 0.0 || !bernoulli_check(survival_probability)) {
+    if (survival_probability == 0.0 
+        || !Random::bernoulli_check(survival_probability)) {
       map<const Clone *, vector<const Cell *> * >::const_iterator iter;
       iter = killed_cells_of_clone.find(cell.get_clone_ptr());
       if (iter == killed_cells_of_clone.end()) {
@@ -67,7 +68,7 @@ void CellCycle::check_reproduction(Cell &cell) {
     reproduction_probability 
       = clamp_probability(cell.get_clone_ptr()->get_reproduction_coefficient() 
                           * cell.get_fitness());
-    if (bernoulli_check(reproduction_probability)) {
+    if (Random::bernoulli_check(reproduction_probability)) {
       population.replicate(cell, space_specification,
                 get_next_replication_record_ptr_of_clone(*cell.get_clone_ptr()));
       ++total_num_cells_that_replicated;
@@ -195,5 +196,4 @@ CellCycle::~CellCycle() {
     }
     delete iter2->second;
   }
-  finalize_random_number_generator();
 }

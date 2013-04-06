@@ -29,7 +29,11 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "run_friends_or_foes.h"
+#include "probability.h"
 #include <fstream>
+#ifdef USING_MPI
+#include <mpi.h>
+#endif
 
 int RunFriendsOrFoesApp::main(const vector<string>& args) {
   if (!_helpRequested)
@@ -39,15 +43,28 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
     ostrm.open(output_file_name.c_str(), ios::out);
     printProperties("fof", ostrm);
     try {
-      ostrm.close();
+#ifdef USING_MPI
+      // MPI-2 conformant MPI implementations are required to allow
+      // applications to pass NULL for both the argc and argv arguments of
+      // MPI_Init.  This is good since Poco::Application::init() has already
+      // swallowed up the original argc and argv, and we would have to
+      // reconstruct them....
+      MPI_Init(NULL, NULL);
+#endif
+      Random::initialize();
     } catch(exception& e) {
         cerr << "error: " << e.what() << "\n";
         ostrm.close();
+        Random::finalize();
         return 1;
     }
     catch(...) {
         cerr << "Exception of unknown type!\n";
         ostrm.close();
+        Random::finalize();
+#ifdef USING_MPI
+        MPI_Finalize();
+#endif
     }
   }
   return Application::EXIT_OK;

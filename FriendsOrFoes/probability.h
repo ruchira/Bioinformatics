@@ -30,12 +30,41 @@
 // DAMAGE.
 #ifndef PROBABILITY_H
 #define PROBABILITY_H
+#include "gsl/gsl_rng.h"
+#include <string>
+#include <exception>
+#include "RngStream.h"
+
+class UninitRngException : public std::exception {
+  public:
+    UninitRngException(std::string m
+                    ="Tried to use uninitialized random number generator.\n") :
+                   msg(m) {};
+    virtual ~UninitRngException() throw() {};
+    const char *what() const throw() { return msg.c_str(); };
+  private:
+    std::string msg;
+};
+
+class Random {
+  public:
+    static void initialize(unsigned long seed = 12345);
+    static void finalize(void);
+    static int rand_int_between_inclusive(int min, int max);
+    static double rand_uniform();
+    static bool bernoulli_check(double probability);
+    static gsl_rng *get_gsl_rng_ptr(void) { return gsl_rng_ptr; }
+    static RngStream *get_rngstream_ptr(void) { return rngstream_ptr; }
+  private:
+    Random(unsigned long seed=12345);
+    virtual ~Random();
+    static Random *the_random_instance_ptr;
+    static int num_streams;
+    static int stream_num;
+    static RngStream *rngstream_ptr;
+    static gsl_rng *gsl_rng_ptr;
+    RngStream *rngstreams;
+};
 
 extern double clamp_probability(double score);
-
-extern bool bernoulli_check(double probability);
-
-extern void initialize_random_number_generator(long seed=12345);
-
-extern void finalize_random_number_generator(void);
 #endif

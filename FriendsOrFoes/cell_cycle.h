@@ -39,12 +39,10 @@ using std::tr1::function;
 class CellCycle{
   public:
     CellCycle(Population &a_population, 
-              function<ReplicationRecord *(void)> new_replication_record_maker): 
+          function<ReplicationRecord *(void)> new_replication_record_maker): 
       population(a_population), total_num_killed_cells(0),
       total_num_cells_that_replicated(0),
-      make_new_replication_record(new_replication_record_maker) {
-        initialize_random_number_generator();
-      };
+      make_new_replication_record(new_replication_record_maker) {};
     virtual ~CellCycle();
     virtual void run(void);
     const Population &get_population(void) const { return population; };

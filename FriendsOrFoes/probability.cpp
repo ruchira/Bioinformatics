@@ -30,6 +30,10 @@
 // DAMAGE.
 #include "probability.h"
 #include "RngStream.h"
+#ifdef USING_MPI
+#include <mpi.h>
+#endif
+#include "limits.h"
 
 double clamp_probability(double score) {
   float result = score;
@@ -42,28 +46,105 @@ double clamp_probability(double score) {
   return result;
 }
 
-RngStream *rng_stream_ptr;
+int Random::num_streams = 1;
+int Random::stream_num = 0;
+gsl_rng * Random::gsl_rng_ptr = NULL;
+RngStream * Random::rngstream_ptr = NULL;
+Random * Random::the_random_instance_ptr = NULL;
 
-void initialize_random_number_generator(unsigned long seed) {
+void setRngStream(void *state, unsigned long int seed) {
+  // This ignores the state and just seeds the random number generator from the
+  // seeds.
   unsigned long seeds[6];
   for (int i = 0; i < 6; ++i) {
     seeds[i] = seed;
   }
   RngStream::SetPackageSeed(seeds);
-  rng_stream_ptr = new RngStream();
 }
 
-void finalize_random_number_generator(void) {
-  if (rng_stream_ptr != NULL) {
-    delete rng_stream_ptr;
+unsigned long int getRngStream(void *state) {
+  if (Random::get_rngstream_ptr() == NULL) {
+    throw UninitRngException();
   }
-  rng_stream_ptr = NULL;
+  return Random::get_rngstream_ptr()->RandInt(INT_MIN, INT_MAX);
 }
 
-bool bernoulli_check(double probability) {
-  if (rng_stream_ptr->RandU01() <= probability) {
+double getDoubleRngStream(void *state) {
+  if (Random::get_rngstream_ptr() == NULL) {
+    throw UninitRngException();
+  }
+  return Random::get_rngstream_ptr()->RandU01();
+}
+
+static const gsl_rng_type rngstream_type = {
+  "RngStream",
+  INT_MAX,
+  INT_MIN,
+  0,  // The RngStream does have an internal state, the Cg array of 6 
+      // doubles.  However, there is no need for gsl to mess with this 
+      // directly.  So here we say that the size of the state is 0.
+  &setRngStream,
+  &getRngStream,
+  &getDoubleRngStream
+};
+
+
+Random::Random(unsigned long seed) {
+  setRngStream(NULL, seed);
+  num_streams = 1;
+#ifdef USING_MPI
+  MPI_Comm_size(MPI_COMM_WORLD, &num_streams);
+#endif
+  rngstreams = new RngStream[num_streams];
+  stream_num = 0;
+#ifdef USING_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &stream_num);
+#endif
+  rngstream_ptr = &(rngstreams[stream_num]);
+}
+
+Random::~Random(void) {
+  delete[] rngstreams;
+  rngstream_ptr = NULL;
+  gsl_rng_ptr = NULL;
+  num_streams = 0;
+  stream_num = -1;
+}
+
+void Random::initialize(unsigned long seed) {
+  if (Random::the_random_instance_ptr == NULL) {
+    the_random_instance_ptr = new Random(seed);
+  }
+}
+
+void Random::finalize(void) {
+  if (Random::the_random_instance_ptr != NULL) {
+    delete the_random_instance_ptr;
+    the_random_instance_ptr = NULL;
+  }
+}
+
+bool Random::bernoulli_check(double probability) {
+  if (Random::rngstream_ptr == NULL) {
+    throw UninitRngException();
+  }
+  if (rngstream_ptr->RandU01() <= probability) {
     return true;
   } else {
     return false;
   }
+}
+
+int Random::rand_int_between_inclusive(int min, int max) {
+  if (Random::rngstream_ptr == NULL) {
+    throw UninitRngException();
+  }
+  return rngstream_ptr->RandInt(min, max);
+}
+
+double Random::rand_uniform(void) {
+  if (Random::rngstream_ptr == NULL) {
+    throw UninitRngException();
+  }
+  return rngstream_ptr->RandU01();
 }
