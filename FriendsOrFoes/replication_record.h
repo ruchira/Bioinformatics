@@ -51,6 +51,8 @@ class ReplicationRecord {
     virtual void record_as_mother(const Cell *cell_ptr) = 0;
     void set_daughter0_ptr(Cell *cell_ptr) { daughter0_ptr = cell_ptr; };
     void set_daughter1_ptr(Cell *cell_ptr) { daughter1_ptr = cell_ptr; };
+  protected:
+    void set_mother_ptr(Cell *cell_ptr) { mother_ptr = cell_ptr; };
   private:
     // The replication record owns the Cell instance pointed to by mother_ptr
     // and is responsible for deleting it.
