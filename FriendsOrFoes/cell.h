@@ -59,7 +59,7 @@ class Cell {
       }
     }
     bool is_alive(void) const { return alive; };
-    virtual void revivify(void) { 
+    virtual void envivify(void) { 
       if (clone_ptr != NULL) {
         alive = true; 
         reset_fitness();
