@@ -45,7 +45,7 @@ class Population {
             =neighbor_affect_cell_through_affine_function) : 
         initial_width(width), initial_height(height), initial_depth(depth),
         neighbor_affect_cell_func(func) {};
-    virtual ~Population();
+    virtual ~Population() {};
     int get_initial_width(void) const { return initial_width; };
     int get_initial_height(void) const { return initial_height; };
     int get_initial_depth(void) const { return initial_depth; };
