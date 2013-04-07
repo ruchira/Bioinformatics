@@ -202,7 +202,7 @@ class Population {
     virtual void update_all_fitnesses(void);
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
-    virtual void *check_for_space_to_replicate(const Cell &cell) const = 0;
+    virtual void *check_for_space_to_replicate(Cell &cell) const = 0;
     // This replicates cell into the specified space and records the
     // replication in replication_record.
     virtual void replicate(Cell &cell, void *space_specification,
