@@ -33,7 +33,7 @@
 #ifdef USING_MPI
 #include <mpi.h>
 #endif
-#include "limits.h"
+#include <limits.h>
 
 double clamp_probability(double score) {
   float result = score;

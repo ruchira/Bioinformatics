@@ -30,7 +30,7 @@
 // DAMAGE.
 #ifndef PROBABILITY_H
 #define PROBABILITY_H
-#include "gsl/gsl_rng.h"
+#include <gsl/gsl_rng.h>
 #include <string>
 #include <exception>
 #include "RngStream.h"

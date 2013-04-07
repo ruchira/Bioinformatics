@@ -29,7 +29,6 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "cell_cycle.h"
-#include "probability.h"
 
 void CellCycle::check_survival(Cell &cell) {
   if (cell.is_alive()) {

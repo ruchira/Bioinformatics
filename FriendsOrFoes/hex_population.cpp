@@ -29,9 +29,7 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "hex_population.h"
-#include "hex_cell.h"
 #include "probability.h"
-#include "clone.h"
 #include <cassert>
 #include <gsl/gsl_randist.h>
 #include <limits.h>
