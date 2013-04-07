@@ -34,6 +34,7 @@
 #include <limits.h>
 
 class HexCell: public Cell {
+  friend class HexPopulation;
   public:
     HexCell(): horiz_coord(INT_MIN), diag_coord(INT_MIN) {};
     virtual ~HexCell() {};

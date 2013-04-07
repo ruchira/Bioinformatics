@@ -34,15 +34,14 @@
 #include "clone.h"
 
 class Cell {
+  friend class Population;
   public:
     Cell() : clone_ptr(NULL), alive(false) {};
     virtual ~Cell() {};
     // Accessors
     Clone *get_clone_ptr(void) const { return clone_ptr; };
-    void set_clone_ptr(Clone *a_clone_ptr) { 
-      clone_ptr = a_clone_ptr; 
-      reset_fitness();
-    };
+    virtual float get_volume(void) const = 0;
+    bool is_alive(void) const { return alive; };
     float get_previous_fitness(void) const {
       return previous_fitness;
     };
@@ -58,7 +57,11 @@ class Cell {
         fitness += fitness_increment;
       }
     }
-    bool is_alive(void) const { return alive; };
+  protected:
+    void set_clone_ptr(Clone *a_clone_ptr) { 
+      clone_ptr = a_clone_ptr; 
+      reset_fitness();
+    };
     virtual void envivify(void) { 
       if (clone_ptr != NULL) {
         alive = true; 
@@ -70,8 +73,6 @@ class Cell {
       previous_fitness = fitness;
       fitness = 0.0;
     };
-    virtual float get_volume(void) const = 0;
-  protected:
     float previous_fitness, fitness;
   private:
     Clone *clone_ptr;

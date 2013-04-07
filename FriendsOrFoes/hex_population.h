@@ -33,6 +33,7 @@
 #include "population.h"
 #include "hex_cell.h"
 #include <gsl/gsl_permutation.h>
+#include <map>
 
 class HexPopulation : public Population {
   public:
@@ -45,7 +46,8 @@ class HexPopulation : public Population {
     // This puts a cell of the specified clone at the specified spot.
     void make_focus_of_clone_at(Clone &clone, int horiz_coord, int diag_coord);
     void make_focus_of_clone_in_middle(Clone &clone);
-    void make_focus_of_clone_at_random_spot(Clone &clone);
+    pair<int, int> make_focus_of_clone_at_random_spot(Clone &clone);
+    void set_clone_of_cell(Clone &clone, HexCell &cell);
     // This envivifies all cells.
     void envivify(void);
 
@@ -156,12 +158,6 @@ class HexPopulation : public Population {
     virtual float get_size_of_interface_between_cells(
                                                   const Cell &cell0, 
                                                   const Cell &cell1) const;
-    // The distance used here is the hexagonal lattice distance, i.e., the
-    // number of steps in the lattice it would take to get from one cell to
-    // another.
-    // NOTA BENE: This method does a very expensive computation.
-    virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
-                                    const Clone &neighbor_clone) const;
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
     virtual void *check_for_space_to_replicate(Cell &cell);
@@ -170,6 +166,15 @@ class HexPopulation : public Population {
     virtual void replicate(Cell &cell, void *space_specification,
                           ReplicationRecord &replication_record);
 
+    virtual int get_num_cells(Clone *filter_clone = NULL) const;
+    virtual float get_volume(Clone *filter_clone = NULL) const;
+    virtual void kill(Cell &cell);
+    // The distance used here is the hexagonal lattice distance, i.e., the
+    // number of steps in the lattice it would take to get from one cell to
+    // another.
+    // NOTA BENE: This method does a very expensive computation.
+    virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
+                                    const Clone &neighbor_clone) const;
   private:
     HexCell *hex_cell_grid;
     HexCell *neighbor_buffer[6];
@@ -185,6 +190,8 @@ class HexPopulation : public Population {
     void edge_neighbor_reshuffle(void);
     void global_reshuffle(void) const;
     int total_num_possible_cells;
+    int total_num_live_cells;
+    std::map<Clone *, int> clone_counts;
 };
 
 #endif

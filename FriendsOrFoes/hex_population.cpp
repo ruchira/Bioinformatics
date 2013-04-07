@@ -31,6 +31,7 @@
 #include "hex_population.h"
 #include "hex_cell.h"
 #include "probability.h"
+#include "clone.h"
 #include <cassert>
 #include <gsl/gsl_randist.h>
 #include <limits.h>
@@ -38,19 +39,36 @@
 #include <algorithm>
 #include <vector>
 
+void HexPopulation::set_clone_of_cell(Clone &clone, HexCell &cell) {
+  if (cell.is_alive()) {
+    std::map<Clone *, int>::iterator iter;
+    iter = clone_counts.find(&clone);
+    if (iter == clone_counts.end()) {
+      clone_counts[&clone] = 0;
+    }
+
+    if (cell.get_clone_ptr() != NULL) {
+      clone_counts[cell.get_clone_ptr()]--;
+    }
+    cell.set_clone_ptr(&clone);
+    clone_counts[&clone]++;
+  } else {
+    cell.set_clone_ptr(&clone);
+  }
+}
+
 void HexPopulation::fill_field_with_clone(Clone &clone) {
   HexCell *hex_cell_ptr;
   int i;
   for (i = 0, hex_cell_ptr = hex_cell_grid; i < total_num_possible_cells; 
       ++i, ++hex_cell_ptr) {
-    hex_cell_ptr->set_clone_ptr(&clone);
+    set_clone_of_cell(clone, *hex_cell_ptr);
   }
 }
 
 void HexPopulation::make_focus_of_clone_at(Clone &clone, 
                                         int horiz_coord, int diag_coord) {
-  HexCell &focus_cell = *cell_at(horiz_coord, diag_coord);
-  focus_cell.set_clone_ptr(&clone);
+  set_clone_of_cell(clone, *cell_at(horiz_coord, diag_coord));
 }
 
 void HexPopulation::make_focus_of_clone_in_middle(Clone &clone) {
@@ -60,12 +78,13 @@ void HexPopulation::make_focus_of_clone_in_middle(Clone &clone) {
                           get_initial_height() / 2);
 }
 
-void HexPopulation::make_focus_of_clone_at_random_spot(Clone &clone) {
+pair<int, int> HexPopulation::make_focus_of_clone_at_random_spot(Clone &clone) {
   int horiz_coord = Random::rand_int_between_inclusive(0, 
                                                     get_initial_width() - 1);
   int diag_coord = Random::rand_int_between_inclusive(0, 
                                                     get_initial_height() - 1);
-  
+  make_focus_of_clone_at(clone, horiz_coord, diag_coord);
+  return make_pair<int, int>(horiz_coord, diag_coord);
 }
 
 void HexPopulation::envivify(void) {
@@ -73,7 +92,18 @@ void HexPopulation::envivify(void) {
   int i;
   for (i = 0, hex_cell_ptr = hex_cell_grid; i < total_num_possible_cells; 
       ++i, ++hex_cell_ptr) {
-    hex_cell_ptr->envivify();
+    if (!hex_cell_ptr->is_alive()) {
+      if (hex_cell_ptr->get_clone_ptr() != NULL) {
+        std::map<Clone *, int>::iterator iter;
+        iter = clone_counts.find(hex_cell_ptr->get_clone_ptr());
+        if (iter == clone_counts.end()) {
+          clone_counts[hex_cell_ptr->get_clone_ptr()] = 0;
+        }
+        hex_cell_ptr->envivify();
+        clone_counts[hex_cell_ptr->get_clone_ptr()]++;
+        ++total_num_live_cells;
+      }
+    }
   }
 }
 
@@ -87,14 +117,42 @@ void *HexPopulation::check_for_space_to_replicate(Cell &cell) {
   return NULL;
 }
 
+int HexPopulation::get_num_cells(Clone *filter_clone) const {
+  if (filter_clone == NULL) {
+    return total_num_live_cells;
+  }
+  std::map<Clone *, int>::const_iterator iter;
+  iter = clone_counts.find(filter_clone);
+  if (iter == clone_counts.end()) {
+    return 0;
+  }
+  return iter->second;
+}
+
+float HexPopulation::get_volume(Clone *filter_clone) const {
+  return get_num_cells(filter_clone) * const_cell_at(0, 0)->get_volume();
+}
+
 void HexPopulation::replicate(Cell &cell, void *space_specification,
                               ReplicationRecord &replication_record) {
-  replication_record.record_as_mother(&cell);
   HexCell *daughter_cell_ptr = (HexCell *)space_specification;
-  daughter_cell_ptr->set_clone_ptr(cell.get_clone_ptr());
-  daughter_cell_ptr->envivify();
-  replication_record.set_daughter0_ptr(&cell);
-  replication_record.set_daughter1_ptr(daughter_cell_ptr);
+  if (cell.is_alive() && daughter_cell_ptr != NULL) {
+    replication_record.record_as_mother(&cell);
+    daughter_cell_ptr->set_clone_ptr(cell.get_clone_ptr());
+    daughter_cell_ptr->envivify();
+    clone_counts[cell.get_clone_ptr()]++;
+    ++total_num_live_cells;
+    replication_record.set_daughter0_ptr(&cell);
+    replication_record.set_daughter1_ptr(daughter_cell_ptr);
+  }
+}
+
+void HexPopulation::kill(Cell &cell) {
+  if (cell.is_alive()) {
+    Population::kill(cell);
+    clone_counts[cell.get_clone_ptr()]--;
+    --total_num_live_cells;
+  }
 }
 
 /* There are six possible neighbors of each cell:
