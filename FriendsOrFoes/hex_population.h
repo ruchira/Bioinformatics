@@ -40,10 +40,14 @@ class HexPopulation : public Population {
           function<void(Cell &, Cell &)> func
             =neighbor_affect_cell_through_affine_function);
     virtual ~HexPopulation();
-    // This fills the grid with cells of clone field_clone, puts one cell in
-    // the middle of clone focus_clone, and envivifies all cells.
-    void initializeFieldWithFocusInMiddle(Clone &field_clone, 
-                                          Clone &focus_clone);
+    // This fills the grid with cells of the specified clone.
+    void fill_field_with_clone(Clone &clone);
+    // This puts a cell of the specified clone at the specified spot.
+    void make_focus_of_clone_at(Clone &clone, int horiz_coord, int diag_coord);
+    void make_focus_of_clone_in_middle(Clone &clone);
+    void make_focus_of_clone_at_random_spot(Clone &clone);
+    // This envivifies all cells.
+    void envivify(void);
 
     /*
      * Methods to act globally or locally on the population of cells

@@ -34,17 +34,39 @@
 #include <cassert>
 #include <gsl/gsl_randist.h>
 
-void HexPopulation::initializeFieldWithFocusInMiddle(Clone &field_clone,
-                                                      Clone &focus_clone) {
+void HexPopulation::fill_field_with_clone(Clone &clone) {
   HexCell *hex_cell_ptr;
   int i;
   for (i = 0, hex_cell_ptr = hex_cell_grid; i < total_num_possible_cells; 
       ++i, ++hex_cell_ptr) {
-    hex_cell_ptr->set_clone_ptr(&field_clone);
+    hex_cell_ptr->set_clone_ptr(&clone);
   }
-  HexCell &focus_cell = *cell_at(get_initial_width() / 2, 
-                                get_initial_height() / 2);
-  focus_cell.set_clone_ptr(&focus_clone);
+}
+
+void HexPopulation::make_focus_of_clone_at(Clone &clone, 
+                                        int horiz_coord, int diag_coord) {
+  HexCell &focus_cell = *cell_at(horiz_coord, diag_coord);
+  focus_cell.set_clone_ptr(&clone);
+}
+
+void HexPopulation::make_focus_of_clone_in_middle(Clone &clone) {
+  // Actually any horizontal coordinate is "the middle" since the grid is a
+  // tube.  We'll use the middle coordinate anyway.
+  make_focus_of_clone_at(clone, get_initial_width() / 2, 
+                          get_initial_height() / 2);
+}
+
+void HexPopulation::make_focus_of_clone_at_random_spot(Clone &clone) {
+  int horiz_coord = Random::rand_int_between_inclusive(0, 
+                                                    get_initial_width() - 1);
+  int diag_coord = Random::rand_int_between_inclusive(0, 
+                                                    get_initial_height() - 1);
+  
+}
+
+void HexPopulation::envivify(void) {
+  HexCell *hex_cell_ptr;
+  int i;
   for (i = 0, hex_cell_ptr = hex_cell_grid; i < total_num_possible_cells; 
       ++i, ++hex_cell_ptr) {
     hex_cell_ptr->envivify();
