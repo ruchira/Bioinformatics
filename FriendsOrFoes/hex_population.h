@@ -129,6 +129,7 @@ class HexPopulation : public Population {
      * End of methods to act globally or locally on the population of cells
      */
 
+    int index_of_cell(int horiz_coord, int diag_coord) const;
     HexCell * cell_at(int horiz_coord, int diag_coord);
     const HexCell * const_cell_at(int horiz_coord, int diag_coord) const;
 
@@ -155,6 +156,10 @@ class HexPopulation : public Population {
     virtual float get_size_of_interface_between_cells(
                                                   const Cell &cell0, 
                                                   const Cell &cell1) const;
+    // The distance used here is the hexagonal lattice distance, i.e., the
+    // number of steps in the lattice it would take to get from one cell to
+    // another.
+    // NOTA BENE: This method does a very expensive computation.
     virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
                                     const Clone &neighbor_clone) const;
     // This returns NULL if there is no space to replicate, or a description of

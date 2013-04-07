@@ -33,6 +33,10 @@
 #include "probability.h"
 #include <cassert>
 #include <gsl/gsl_randist.h>
+#include <limits.h>
+#include <utility>
+#include <algorithm>
+#include <vector>
 
 void HexPopulation::fill_field_with_clone(Clone &clone) {
   HexCell *hex_cell_ptr;
@@ -159,19 +163,27 @@ HexPopulation::~HexPopulation() {
   delete hex_cell_grid;
 }
 
-HexCell *HexPopulation::cell_at(int horiz_coord, int diag_coord) {
+int HexPopulation::index_of_cell(int horiz_coord, int diag_coord) const {
   if (diag_coord >= 0 && diag_coord < get_initial_height()) {
-    return &(hex_cell_grid[diag_coord * get_initial_width() 
-                        + (horiz_coord % get_initial_width())]);
+    return (diag_coord * get_initial_width() 
+            + horiz_coord % get_initial_width());
+  }
+  return -1;
+}
+
+HexCell *HexPopulation::cell_at(int horiz_coord, int diag_coord) {
+  int i = index_of_cell(horiz_coord, diag_coord);
+  if (i >= 0) {
+    return &(hex_cell_grid[i]);
   }
   return NULL;
 }
 
 const HexCell *HexPopulation::const_cell_at(int horiz_coord, 
                                             int diag_coord) const {
-  if (diag_coord >= 0 && diag_coord < get_initial_height()) {
-    return &(hex_cell_grid[diag_coord * get_initial_width() 
-                        + (horiz_coord % get_initial_width())]);
+  int i = index_of_cell(horiz_coord, diag_coord);
+  if (i >= 0) {
+    return &(hex_cell_grid[i]);
   }
   return NULL;
 }
@@ -1436,4 +1448,131 @@ int HexPopulation::fill_neighbor_buffer(HexCell &cell, bool require_dead) {
     }
   }
   return num_neighbors;
+}
+
+struct MedianDistanceData {
+  pair<int, int> *distances_to_clones_grid;
+  const HexPopulation &population;
+  bool some_distance_was_updated;
+  MedianDistanceData(const HexPopulation &a_population);
+  virtual ~MedianDistanceData();
+};
+
+MedianDistanceData::MedianDistanceData(const HexPopulation &a_population) :
+    population(a_population) {
+  distances_to_clones_grid 
+    = new pair<int, int>[population.get_initial_width() *
+                          population.get_initial_height()];
+}
+
+MedianDistanceData::~MedianDistanceData() {
+  delete distances_to_clones_grid;
+}
+
+void *update_median_distance_data_from_neighbors(void *data, const Cell &cell,
+                                                  const Cell& neighbor) {
+  const HexCell &hex_cell = *( (const HexCell *)(&cell) );
+  const HexCell &hex_neighbor = *( (const HexCell *)(&neighbor) );
+  MedianDistanceData &median_distance_data = *( (MedianDistanceData *)data );
+  int i = median_distance_data.population.index_of_cell(
+                        hex_cell.get_horiz_coord(), hex_cell.get_diag_coord());
+  int j = median_distance_data.population.index_of_cell(
+                hex_neighbor.get_horiz_coord(), hex_neighbor.get_diag_coord());
+  // Check if the current distance from cell i to each clone could be shortened
+  // by going through neighbor j
+  if (median_distance_data.distances_to_clones_grid[i].first > 
+      median_distance_data.distances_to_clones_grid[j].first + 1) {
+    median_distance_data.distances_to_clones_grid[i].first
+    = median_distance_data.distances_to_clones_grid[j].first + 1;
+    median_distance_data.some_distance_was_updated = true;
+  }
+  if (median_distance_data.distances_to_clones_grid[i].second > 
+      median_distance_data.distances_to_clones_grid[j].second + 1) {
+    median_distance_data.distances_to_clones_grid[i].second
+    = median_distance_data.distances_to_clones_grid[j].second + 1;
+    median_distance_data.some_distance_was_updated = true;
+  }
+  return data;
+}
+
+void *update_median_distance_data(void *data, const Cell &cell) {
+  MedianDistanceData &median_distance_data = *( (MedianDistanceData *)data );
+  return median_distance_data.population.const_fold_neighbors(
+                      update_median_distance_data_from_neighbors, cell, data);
+}
+
+float HexPopulation::get_median_distance_from_clone_to_clone(const Clone &clone,
+                                    const Clone &neighbor_clone) const {
+  if (&clone == &neighbor_clone) {
+    return 0;
+  }
+  float median_distance;
+  MedianDistanceData median_distance_data(*this);
+  // This grid will eventually hold the distance of each cell to the nearest
+  // living cell of clone or neighbor_clone, respectively.
+  int i;
+  HexCell *hex_cell_ptr;
+  pair<int, int> *distances_ptr;
+  for (i = 0, hex_cell_ptr = hex_cell_grid, 
+      distances_ptr = median_distance_data.distances_to_clones_grid; 
+      i < total_num_possible_cells; 
+      ++i, ++hex_cell_ptr, ++distances_ptr) {
+    distances_ptr->first = INT_MAX;
+    distances_ptr->second = INT_MAX;
+    if (hex_cell_ptr->is_alive()) {
+      if (hex_cell_ptr->get_clone_ptr() == &clone) {
+        distances_ptr->first = 0;
+      }
+      if (hex_cell_ptr->get_clone_ptr() == &neighbor_clone) {
+        distances_ptr->second = 0;
+      }
+    }
+  }
+  // Worst case: this loop will iterate initial_width/2 * initial_height times,
+  // to update, e.g., the cell at (0,0) in a field of cells of one clone with
+  // the distance to a single cell of the other clone at (initial_width/2,
+  // initial_height).  (Since the grid wraps around horizontally, cells with
+  // horizontal coordinate > initial_width/2 can be more quickly reached by
+  // going the other way.)  In each iteration of this loop, each of the 6
+  // neighbors of each of the initial_width * initial_height cells are checked.
+  do {
+    median_distance_data.some_distance_was_updated = false;
+    // We must iterate over *all* cells since the shortest path from a cell of
+    // one clone to another may lie through an intermediate cell that is of
+    // neither clone, or is dead.
+    const_fold(update_median_distance_data, &median_distance_data);
+  } while (median_distance_data.some_distance_was_updated);
+  // Now that the distances are correct, put them in a vector so we can sort
+  // them.
+  vector<int> sorted_distances;
+  for (i = 0, distances_ptr = median_distance_data.distances_to_clones_grid;
+      i < total_num_possible_cells;
+      ++i, ++distances_ptr) {
+    if (distances_ptr->first == 0) {
+      // This is a living cell of clone
+      // Tally its distance to neighbor_clone
+      sorted_distances.push_back(distances_ptr->second);
+    }
+    if (distances_ptr->second == 0) {
+      // This is a living cell of neighbor_clone
+      // Tally its distance to clone
+      sorted_distances.push_back(distances_ptr->first);
+    }
+  }
+  sort(sorted_distances.begin(), sorted_distances.end());
+  i = sorted_distances.size() / 2;
+  if (sorted_distances.size() % 2 == 0) {
+    // *sorted_distances_ptr has 2i elements, indexed from 0 to 2i - 1
+    // the elements i-1 and i are both in the "middle":
+    // element i-1 has i-1 elements before it,
+    // element i has i-1 elements after it.
+    median_distance = (0.5 * (sorted_distances[i-1] + sorted_distances[i]));
+  } else {
+    // *sorted_distances_ptr has 2i + 1 elements, indexed from 0 to 2i
+    // the single element i is in the middle; it has i elements before and
+    // after it.
+    median_distance = sorted_distances[i];
+  }
+  
+  return median_distance;
 }
