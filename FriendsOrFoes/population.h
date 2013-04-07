@@ -190,8 +190,6 @@ class Population {
     virtual float get_volume(Clone *filter_clone = NULL) const;
     virtual int get_num_cells_of_clone_adjacent_to_clone(const Clone &clone,
                                       const Clone &neighbor_clone) const;
-    virtual float get_size_of_interface_between_cell_and_other_clones(
-                                                const Cell &cell) const;
     virtual float get_size_of_boundary_of_clone(const Clone &clone) const;
     virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
                                     const Clone &neighbor_clone) const = 0;
