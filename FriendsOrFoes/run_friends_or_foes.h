@@ -31,9 +31,16 @@
 #ifndef RUN_FRIENDS_OR_FOES_H
 #define RUN_FRIENDS_OR_FOES_H
 #include "friends_or_foes.h"
+#include "cell_cycle.h"
 
-class RunFriendsOrFoesApp : FriendsOrFoesApp {
-  int main(const vector<string>& args);
+class RunFriendsOrFoesApp : public FriendsOrFoesApp {
+  public:
+    RunFriendsOrFoesApp() : FriendsOrFoesApp(), cell_cycle_ptr(NULL) {};
+    virtual ~RunFriendsOrFoesApp();
+    int main(const vector<string>& args);
+    void create_cell_cycle(void);
+  private:
+    CellCycle *cell_cycle_ptr;
 };
 
 #endif

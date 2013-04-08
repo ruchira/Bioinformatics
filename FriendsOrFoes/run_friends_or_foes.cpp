@@ -29,11 +29,24 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "run_friends_or_foes.h"
-#include "probability.h"
+#include "hex_replication_record.h"
 #include <fstream>
 #ifdef USING_MPI
 #include <mpi.h>
 #endif
+
+RunFriendsOrFoesApp::~RunFriendsOrFoesApp() {
+  if (cell_cycle_ptr != NULL) {
+    delete cell_cycle_ptr;
+  }
+}
+
+void RunFriendsOrFoesApp::create_cell_cycle(void) {
+  if (is_rigid) {
+    cell_cycle_ptr = new CellCycle(*population_ptr,
+                                    make_hex_replication_record);
+  }
+}
 
 int RunFriendsOrFoesApp::main(const vector<string>& args) {
   if (!_helpRequested)
@@ -45,7 +58,6 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
     printProperties("fof", cnfstrm);
     cnfstrm.close();
 
-    create_population();
     string output_file_name = output_file_base + (is_rigid ? ".hxg" : ".flx");
     ofstream ostrm;
     ostrm.open(output_file_name.c_str(), ios::out);
@@ -59,6 +71,15 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
       MPI_Init(NULL, NULL);
 #endif
       Random::initialize(random_seed);
+      create_population();
+      create_cell_cycle();
+      int generation;
+      for (generation = 0; generation < maximum_time; ++generation) {
+        if (population_ptr->get_num_cells() == 0) {
+          break;
+        }
+        cell_cycle_ptr->run();
+      }
     } catch(exception& e) {
         cerr << "error: " << e.what() << "\n";
         ostrm.close();

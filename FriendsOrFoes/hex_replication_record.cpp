@@ -41,3 +41,7 @@ void HexReplicationRecord::record_as_mother(const Cell *cell_ptr) {
   const HexCell *src = (const HexCell *)cell_ptr;
   *dest = *src;
 }
+
+ReplicationRecord *make_hex_replication_record(void) {
+  return new HexReplicationRecord;
+}

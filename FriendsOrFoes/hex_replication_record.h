@@ -38,8 +38,6 @@ class HexReplicationRecord : public ReplicationRecord {
     virtual void record_as_mother(const Cell *cell_ptr);
 };
 
-ReplicationRecord *make_hex_replication_record(void) {
-  return new HexReplicationRecord;
-}
+extern ReplicationRecord *make_hex_replication_record(void);
 
 #endif

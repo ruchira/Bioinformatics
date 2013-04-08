@@ -17,9 +17,9 @@ RUN_OBJECTS = run_friends_or_foes.o cell_cycle.o
 
 all: run_friends_or_foes
 
-run_friends_or_foes.o: run_friends_or_foes.cpp run_friends_or_foes.h probability.h
+run_friends_or_foes.o: run_friends_or_foes.cpp run_friends_or_foes.h hex_replication_record.h
 
-run_friends_or_foes.h: friends_or_foes.h
+run_friends_or_foes.h: friends_or_foes.h cell_cycle.h
 
 friends_or_foes.h: clone.h population.h
 
