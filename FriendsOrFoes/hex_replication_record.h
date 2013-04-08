@@ -31,11 +31,21 @@
 #ifndef HEX_REPLICATION_RECORD_H
 #define HEX_REPLICATION_RECORD_H
 #include "replication_record.h"
+#include "hex_cell.h"
 
 class HexReplicationRecord : public ReplicationRecord {
   public:
     virtual void initialize(void);
     virtual void record_as_mother(const Cell *cell_ptr);
+    const HexCell *get_hex_mother_ptr(void) const { 
+      return (HexCell *)get_mother_ptr(); 
+    };
+    const HexCell *get_hex_daughter0_ptr(void) const { 
+      return (HexCell *)get_daughter0_ptr(); 
+    };
+    const HexCell *get_hex_daughter1_ptr(void) const {
+      return (HexCell *)get_daughter1_ptr();
+    };
 };
 
 extern ReplicationRecord *make_hex_replication_record(void);

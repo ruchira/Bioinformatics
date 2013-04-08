@@ -32,6 +32,7 @@
 #define RUN_FRIENDS_OR_FOES_H
 #include "friends_or_foes.h"
 #include "cell_cycle.h"
+#include "hex_friends_or_foes_history.pb.h"
 
 class RunFriendsOrFoesApp : public FriendsOrFoesApp {
   public:
@@ -39,8 +40,10 @@ class RunFriendsOrFoesApp : public FriendsOrFoesApp {
     virtual ~RunFriendsOrFoesApp();
     int main(const vector<string>& args);
     void create_cell_cycle(void);
+    void write_hex_cell_cycle_run(ostream &ostrm);
   private:
     CellCycle *cell_cycle_ptr;
+    friends_or_foes::HexPopulationEvent hex_population_event;
 };
 
 #endif

@@ -30,10 +30,13 @@
 // DAMAGE.
 #include "run_friends_or_foes.h"
 #include "hex_replication_record.h"
+#include <iostream>
 #include <fstream>
 #ifdef USING_MPI
 #include <mpi.h>
 #endif
+
+using namespace friends_or_foes;
 
 RunFriendsOrFoesApp::~RunFriendsOrFoesApp() {
   if (cell_cycle_ptr != NULL) {
@@ -46,6 +49,63 @@ void RunFriendsOrFoesApp::create_cell_cycle(void) {
     cell_cycle_ptr = new CellCycle(*population_ptr,
                                     make_hex_replication_record);
   }
+}
+
+struct DataForWritingReplicationRecord {
+  DataForWritingReplicationRecord(HexPopulationEvent &event, ostream &strm) :
+    hex_population_event(event), ostrm(strm) {};
+  HexPopulationEvent &hex_population_event;
+  ostream &ostrm;
+};
+
+void *write_replication_to_stream(void *data, const ReplicationRecord &record)
+{
+  DataForWritingReplicationRecord *pStruct 
+    = (DataForWritingReplicationRecord *)data;
+  const HexReplicationRecord *hex_record_ptr 
+        = (HexReplicationRecord *)(&record);
+  HexCellProto *hex_cell_proto0_ptr 
+    = pStruct->hex_population_event.mutable_cell0();
+  HexCellProto *hex_cell_proto1_ptr
+    = pStruct->hex_population_event.mutable_cell1();
+  hex_cell_proto0_ptr->set_horiz_coord(
+        hex_record_ptr->get_hex_mother_ptr()->get_horiz_coord());
+  hex_cell_proto0_ptr->set_diag_coord(
+        hex_record_ptr->get_hex_mother_ptr()->get_diag_coord());
+  hex_cell_proto1_ptr->set_horiz_coord(
+        hex_record_ptr->get_hex_daughter1_ptr()->get_horiz_coord());
+  hex_cell_proto1_ptr->set_diag_coord(
+        hex_record_ptr->get_hex_daughter1_ptr()->get_diag_coord());
+  pStruct->hex_population_event.SerializeToOstream(&pStruct->ostrm);
+  return data;
+}
+
+void RunFriendsOrFoesApp::write_hex_cell_cycle_run(ostream &ostrm) {
+  HexCellProto *hex_cell_proto0_ptr;
+  HexPopulationEvent hex_population_event;
+  int i, j;
+  hex_population_event.Clear();
+  hex_population_event.set_type(HexPopulationEvent::kill);
+  hex_cell_proto0_ptr = hex_population_event.mutable_cell0();
+  for (i = 0; i < num_clones; ++i) {
+    const vector<const Cell *> *killed_cells 
+      = cell_cycle_ptr->get_killed_cells_of_clone(*clone_ptrs[i]);
+    for (j = 0; j < killed_cells->size(); ++j) {
+      hex_cell_proto0_ptr->set_horiz_coord(
+        ((const HexCell *)killed_cells->at(j))->get_horiz_coord());
+      hex_cell_proto0_ptr->set_diag_coord(
+        ((const HexCell *)killed_cells->at(j))->get_diag_coord());
+      hex_population_event.SerializeToOstream(&ostrm);
+    }
+  }
+  hex_population_event.set_type(HexPopulationEvent::replicate);
+  DataForWritingReplicationRecord data(hex_population_event, ostrm);
+  cell_cycle_ptr->const_fold_replication_records(write_replication_to_stream, 
+                                                  &data);
+  hex_population_event.clear_cell0();
+  hex_population_event.clear_cell1();
+  hex_population_event.set_type(HexPopulationEvent::stop);
+  hex_population_event.SerializeToOstream(&ostrm);
 }
 
 int RunFriendsOrFoesApp::main(const vector<string>& args) {
@@ -79,6 +139,7 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
           break;
         }
         cell_cycle_ptr->run();
+        write_hex_cell_cycle_run(ostrm);
       }
     } catch(exception& e) {
         cerr << "error: " << e.what() << "\n";

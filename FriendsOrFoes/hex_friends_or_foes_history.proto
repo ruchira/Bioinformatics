@@ -5,16 +5,13 @@ message HexCellProto {
   required int32 diag_coord = 2;
 }
 
-message HexReplicationRecordProto {
-  required HexCellProto mother = 1;
-  required HexCellProto new_daughter = 2;
-}
-
-message HexCellCycleRunProto {
-  repeated HexCellProto killings = 1;
-  repeated HexReplicationRecordProto replications = 2;
-}
-
-message HexPopulationHistoryProto {
-  repeated HexCellCycleRunProto runs = 1;
+message HexPopulationEvent {
+  enum Type {
+    stop = 0;
+    kill = 1;
+    replicate = 2;
+  }
+  required Type type = 1;
+  optional HexCellProto cell0 = 2;
+  optional HexCellProto cell1 = 3;
 }

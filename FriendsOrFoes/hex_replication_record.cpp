@@ -29,7 +29,6 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "hex_replication_record.h"
-#include "hex_cell.h"
 
 void HexReplicationRecord::initialize(void) {
   HexCell *hex_cell_ptr = new HexCell;
