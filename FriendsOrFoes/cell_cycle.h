@@ -30,8 +30,8 @@
 // DAMAGE.
 #ifndef CELL_CYCLE_H
 #define CELL_CYCLE_H
-#include "population.h"
 #include "probability.h"
+#include "population.h"
 #include <vector>
 
 using std::tr1::function;

@@ -21,9 +21,9 @@ run_friends_or_foes.o: run_friends_or_foes.cpp run_friends_or_foes.h probability
 
 run_friends_or_foes.h: friends_or_foes.h
 
-friends_or_foes.h: clone.h
+friends_or_foes.h: clone.h population.h
 
-friends_or_foes.o: friends_or_foes.cpp friends_or_foes.h 
+friends_or_foes.o: friends_or_foes.cpp friends_or_foes.h hex_population.h
 
 hex_const.o: hex_const.cpp hex_const.h
 

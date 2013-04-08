@@ -41,7 +41,7 @@
 #include "Poco/AutoPtr.h"
 
 #include "friends_or_foes.h"
-#include "replication_record.h"
+#include "hex_population.h"
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -51,6 +51,18 @@ using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::Util::IntValidator;
 using Poco::AutoPtr;
+
+FriendsOrFoesApp::~FriendsOrFoesApp() {
+  if (population_ptr != NULL) {
+    delete population_ptr;
+  }
+  Clone * clone_ptr;
+  while (clone_ptrs.size() > 0) {
+    clone_ptr = clone_ptrs.back();
+    delete clone_ptr;
+    clone_ptrs.pop_back();
+  }
+}
 
 void FriendsOrFoesApp::initialize(Application& self) {
   set_num_clones(2);
@@ -389,6 +401,17 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
   }
 }
 	
+void FriendsOrFoesApp::create_population(void) {
+  if (is_rigid) {
+    if (population_ptr != NULL) {
+      delete population_ptr;
+    }
+    population_ptr = new HexPopulation(
+        strtol(config().getString("fof.width").c_str(), NULL, 10),
+        strtol(config().getString("fof.height").c_str(), NULL, 10));
+  }
+}
+
 void FriendsOrFoesApp::printProperties(const string& base, ostream &ostrm) const 
 {
   AbstractConfiguration::Keys keys;
