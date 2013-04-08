@@ -39,9 +39,16 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
   if (!_helpRequested)
   {
     set_values_from_config_with_defaults();
+    string output_config = output_file_base + "_used.cnf";
+    ofstream cnfstrm;
+    cnfstrm.open(output_config.c_str(), ios::out);
+    printProperties("fof", cnfstrm);
+    cnfstrm.close();
+
+    create_population();
+    string output_file_name = output_file_base + (is_rigid ? ".hxg" : ".flx");
     ofstream ostrm;
     ostrm.open(output_file_name.c_str(), ios::out);
-    printProperties("fof", ostrm);
     try {
 #ifdef USING_MPI
       // MPI-2 conformant MPI implementations are required to allow

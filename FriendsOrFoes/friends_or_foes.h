@@ -44,12 +44,12 @@ using namespace Poco::Util;
 
 class FriendsOrFoesApp: public Application {
 public:
-  FriendsOrFoesApp(): _helpRequested(false), output_file_name("") {};
+  FriendsOrFoesApp(): _helpRequested(false), output_file_base("") {};
   virtual ~FriendsOrFoesApp();
   int get_num_clones(void) const { return num_clones; };
   bool get_is_rigid() const { return is_rigid; };
   const Clone &get_clone(int i) { return *clone_ptrs.at(i); };
-  const string &get_output_file_name(void) { return output_file_name; }
+  const string &get_output_file_base(void) { return output_file_base; }
   int get_maximum_time(void) { return maximum_time; }
   void printProperties(const string& base, ostream &ostrm) const;
   const Population *get_const_population_ptr(void) const { 
@@ -86,7 +86,7 @@ protected:
 
   int num_clones;
   vector<Clone *> clone_ptrs;
-  string output_file_name;
+  string output_file_base;
   bool is_rigid;
   int maximum_time;
   unsigned long random_seed;

@@ -225,7 +225,7 @@ void FriendsOrFoesApp::handleConfig(const string& name, const string& value) {
 
 void FriendsOrFoesApp::handleOutputFile(const string& name, const string& value) 
 {
-  output_file_name = value;
+  output_file_base = value;
   config().setString("fof.output_file_base", value);
 }
 
@@ -346,8 +346,7 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
   }
   maximum_time = strtol(config().getString("fof.maximum_time").c_str(), NULL, 
                         10);
-  output_file_name = config().getString("fof.output_file_base") 
-                    + (is_rigid ? ".hxg" : ".flx");
+  output_file_base = config().getString("fof.output_file_base"); 
   if (!config().hasProperty("fof.width")) {
     config().setString("fof.width", "1500");
   }
@@ -402,13 +401,17 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
 }
 	
 void FriendsOrFoesApp::create_population(void) {
+  if (population_ptr != NULL) {
+    delete population_ptr;
+  }
   if (is_rigid) {
-    if (population_ptr != NULL) {
-      delete population_ptr;
-    }
-    population_ptr = new HexPopulation(
+    HexPopulation *hex_population_ptr = new HexPopulation(
         strtol(config().getString("fof.width").c_str(), NULL, 10),
         strtol(config().getString("fof.height").c_str(), NULL, 10));
+    hex_population_ptr->fill_field_with_clone(*clone_ptrs.at(0));
+    hex_population_ptr->make_focus_of_clone_in_middle(*clone_ptrs.at(1));
+    hex_population_ptr->envivify();
+    population_ptr = hex_population_ptr;
   }
 }
 
