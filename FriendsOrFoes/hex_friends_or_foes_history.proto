@@ -1,0 +1,20 @@
+package friends_or_foes;
+
+message HexCellProto {
+  required int32 horiz_coord = 1;
+  required int32 diag_coord = 2;
+}
+
+message HexReplicationRecordProto {
+  required HexCellProto mother = 1;
+  required HexCellProto new_daughter = 2;
+}
+
+message HexCellCycleRunProto {
+  repeated HexCellProto killings = 1;
+  repeated HexReplicationRecordProto replications = 2;
+}
+
+message HexPopulationHistoryProto {
+  repeated HexCellCycleRunProto runs = 1;
+}

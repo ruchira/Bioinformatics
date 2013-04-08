@@ -1,3 +1,5 @@
 run_friends_or_foes
 *.o
 .*.swp
+*.pb.h
+*.pb.cc
