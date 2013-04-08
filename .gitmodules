@@ -2,3 +2,6 @@
 	path = lib/poco
 	url = https://github.com/pocoproject/poco.git
   ignore = dirty
+[submodule "lib/protobuf"]
+	path = lib/protobuf
+	url = https://code.google.com/p/protobuf-git/
