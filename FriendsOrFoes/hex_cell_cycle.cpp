@@ -72,6 +72,12 @@ void HexCellCycle::global_try_reproduction(void) {
 	// Now check the reproduction of these cells, in the permuted order.
 	// No cell can reproduce unless there is space next to it (i.e., a dead
 	// cell), so these are all the cells we need to check.
+	// When a cell replicates in some iteration of this loop, replacing one of
+	// the dead cells with its daughter, some of the other neighbors of the
+	// formerly dead cell will no longer have a dead neighbor.  Then the call to
+	// HexPopulation::check_for_space_to_replicate() will fail and those
+	// neighbors will not be able to replicate.  This is why the order is
+	// significant and we assured that it would be random.
 	for (i = 0; i < live_neighbors_of_dead_cells.size(); ++i) {
 		try_reproduction(*live_neighbors_of_dead_cells[i]);
 	}
