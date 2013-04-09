@@ -30,7 +30,7 @@
 // DAMAGE.
 #include "cell_cycle.h"
 
-void CellCycle::check_survival(Cell &cell) {
+void CellCycle::try_survival(Cell &cell) {
   if (cell.is_alive()) {
     double survival_probability;
     survival_probability = clamp_probability(
@@ -54,13 +54,13 @@ void CellCycle::check_survival(Cell &cell) {
   }
 }
 
-void *check_survival_func(void *data, Cell &cell) {
+void *try_survival_func(void *data, Cell &cell) {
   CellCycle *cell_cycle_ptr = (CellCycle *)data;
-  cell_cycle_ptr->check_survival(cell);
+  cell_cycle_ptr->try_survival(cell);
   return data;
 }
 
-void CellCycle::check_reproduction(Cell &cell) {
+void CellCycle::try_reproduction(Cell &cell) {
   void *space_specification = population.check_for_space_to_replicate(cell);
   if (space_specification != NULL) {
     double reproduction_probability;
@@ -75,14 +75,14 @@ void CellCycle::check_reproduction(Cell &cell) {
   }
 }
 
-void *check_reproduction_func(void *data, Cell &cell) {
+void *try_reproduction_func(void *data, Cell &cell) {
   CellCycle *cell_cycle_ptr = (CellCycle *)data;
-  cell_cycle_ptr->check_reproduction(cell);
+  cell_cycle_ptr->try_reproduction(cell);
   return data;
 }
 
-void CellCycle::global_check_reproduction(void) {
-  population.fold_in_random_order(check_reproduction_func, this);
+void CellCycle::global_try_reproduction(void) {
+  population.fold_in_random_order(try_reproduction_func, this);
 }
 
 void CellCycle::run(void) {
@@ -93,8 +93,8 @@ void CellCycle::run(void) {
   // We update the fitness on all the cells before checking survival, so that
   // the aliveness check will refer consistently to the previous run.
   population.update_all_fitnesses();
-  population.fold(check_survival_func, this);
-  global_check_reproduction();
+  population.fold(try_survival_func, this);
+  global_try_reproduction();
 }
 
 const vector<const Cell *> *CellCycle::get_killed_cells_of_clone(

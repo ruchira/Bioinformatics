@@ -9,11 +9,11 @@ LIBS = -lPocoFoundation -lPocoUtil -lm -lgsl -lgslcblas -lprotobuf
 
 COMMON_SOURCES = friends_or_foes.cpp hex_const.cpp hex_cell.cpp hex_replication_record.cpp population.cpp hex_population.cpp probability.cpp ../lib/RngStream/RngStream.cpp hex_friends_or_foes_history.proto
 
-RUN_SOURCES = run_friends_or_foes.cpp cell_cycle.cpp
+RUN_SOURCES = run_friends_or_foes.cpp cell_cycle.cpp hex_cell_cycle.cpp
 
 COMMON_OBJECTS = friends_or_foes.o hex_const.o hex_cell.o hex_replication_record.o population.o hex_population.o probability.o ../lib/RngStream/RngStream.o hex_friends_or_foes_history.o
 
-RUN_OBJECTS = run_friends_or_foes.o cell_cycle.o
+RUN_OBJECTS = run_friends_or_foes.o cell_cycle.o hex_cell_cycle.o
 
 all: run_friends_or_foes
 
@@ -52,6 +52,10 @@ probability.o: probability.cpp probability.h
 cell_cycle.o: cell_cycle.cpp cell_cycle.h 
 
 cell_cycle.h: population.h probability.h
+
+hex_cell_cycle.o: hex_cell_cycle.cpp hex_cell_cycle.h
+
+hex_cell_cycle.h: cell_cycle.h
 
 hex_friends_or_foes_history.o: hex_friends_or_foes_history.proto
 	protoc --cpp_out=. hex_friends_or_foes_history.proto; $(CXXCOMPILE) $(INCLUDES) $(DEFINES) -c hex_friends_or_foes_history.pb.cc -o hex_friends_or_foes_history.o

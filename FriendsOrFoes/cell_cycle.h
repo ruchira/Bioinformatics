@@ -65,11 +65,12 @@ class CellCycle{
     int get_total_num_cells_that_replicated(void) const {
       return total_num_cells_that_replicated;
     };
-    virtual void check_survival(Cell &cell);
-    virtual void check_reproduction(Cell &cell);
-    virtual void global_check_reproduction(void);
-  private:
+  protected:
+    virtual void try_survival(Cell &cell);
+    virtual void try_reproduction(Cell &cell);
+    virtual void global_try_reproduction(void);
     Population &population;
+  private:
     function<ReplicationRecord *(void)> make_new_replication_record;
     map<const Clone *, vector<const Cell *> * > killed_cells_of_clone;
     map<const Clone *, vector<ReplicationRecord *> * > 
@@ -88,6 +89,8 @@ class CellCycle{
     void clear_num_replication_records_of_clone();
     ReplicationRecord &get_next_replication_record_ptr_of_clone(
                                                       const Clone &clone);
+    friend void *try_survival_func(void *data, Cell &cell);
+    friend void *try_reproduction_func(void *data, Cell &cell);
 };
 
 #endif

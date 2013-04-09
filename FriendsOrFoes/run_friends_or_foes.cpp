@@ -29,7 +29,7 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "run_friends_or_foes.h"
-#include "hex_replication_record.h"
+#include "hex_cell_cycle.h"
 #include <iostream>
 #include <fstream>
 #ifdef USING_MPI
@@ -46,8 +46,7 @@ RunFriendsOrFoesApp::~RunFriendsOrFoesApp() {
 
 void RunFriendsOrFoesApp::create_cell_cycle(void) {
   if (is_rigid) {
-    cell_cycle_ptr = new CellCycle(*population_ptr,
-                                    make_hex_replication_record);
+    cell_cycle_ptr = new HexCellCycle(*population_ptr);
   }
 }
 
