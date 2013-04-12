@@ -5,6 +5,8 @@
 [submodule "lib/protobuf"]
 	path = lib/protobuf
 	url = https://code.google.com/p/protobuf-git/
+  ignore = dirty
 [submodule "lib/allegro"]
 	path = lib/allegro
 	url = git://git.code.sf.net/p/alleg/allegro
+  ignore = dirty
