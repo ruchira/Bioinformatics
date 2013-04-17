@@ -89,12 +89,14 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(ostream &ostrm) {
   for (i = 0; i < num_clones; ++i) {
     const vector<const Cell *> *killed_cells 
       = cell_cycle_ptr->get_killed_cells_of_clone(*clone_ptrs[i]);
-    for (j = 0; j < killed_cells->size(); ++j) {
-      hex_cell_proto0_ptr->set_horiz_coord(
-        ((const HexCell *)killed_cells->at(j))->get_horiz_coord());
-      hex_cell_proto0_ptr->set_diag_coord(
-        ((const HexCell *)killed_cells->at(j))->get_diag_coord());
-      hex_population_event.SerializeToOstream(&ostrm);
+    if (killed_cells != NULL) {
+      for (j = 0; j < killed_cells->size(); ++j) {
+        hex_cell_proto0_ptr->set_horiz_coord(
+          ((const HexCell *)killed_cells->at(j))->get_horiz_coord());
+        hex_cell_proto0_ptr->set_diag_coord(
+          ((const HexCell *)killed_cells->at(j))->get_diag_coord());
+        hex_population_event.SerializeToOstream(&ostrm);
+      }
     }
   }
   hex_population_event.set_type(HexPopulationEvent::replicate);
