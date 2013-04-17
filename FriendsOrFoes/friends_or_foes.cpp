@@ -400,14 +400,19 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
   }
 }
 	
+HexPopulation *FriendsOrFoesApp::get_new_hex_population(void) {
+  HexPopulation *hex_population_ptr = new HexPopulation(
+      strtol(config().getString("fof.width").c_str(), NULL, 10),
+      strtol(config().getString("fof.height").c_str(), NULL, 10));
+  return hex_population_ptr;
+}
+
 void FriendsOrFoesApp::create_population(void) {
   if (population_ptr != NULL) {
     delete population_ptr;
   }
   if (is_rigid) {
-    HexPopulation *hex_population_ptr = new HexPopulation(
-        strtol(config().getString("fof.width").c_str(), NULL, 10),
-        strtol(config().getString("fof.height").c_str(), NULL, 10));
+    HexPopulation *hex_population_ptr = get_new_hex_population();
     hex_population_ptr->fill_field_with_clone(*clone_ptrs.at(0));
     hex_population_ptr->make_focus_of_clone_in_middle(*clone_ptrs.at(1));
     hex_population_ptr->envivify();

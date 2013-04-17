@@ -140,10 +140,18 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
         cell_cycle_ptr->run();
         write_hex_cell_cycle_run(ostrm);
       }
+      ostrm.close();
+      Random::finalize();
+#ifdef USING_MPI
+      MPI_Finalize();
+#endif
     } catch(exception& e) {
         cerr << "error: " << e.what() << "\n";
         ostrm.close();
         Random::finalize();
+#ifdef USING_MPI
+        MPI_Finalize();
+#endif
         return 1;
     }
     catch(...) {
@@ -158,4 +166,4 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
   return Application::EXIT_OK;
 }
 
-POCO_APP_MAIN(FriendsOrFoesApp)
+POCO_APP_MAIN(RunFriendsOrFoesApp)

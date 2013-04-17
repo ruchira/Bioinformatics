@@ -36,6 +36,7 @@
 #include "Poco/Util/OptionSet.h"
 #include "clone.h"
 #include "population.h"
+#include "hex_population.h"
 
 #include <iostream>
 #include <vector>
@@ -81,6 +82,7 @@ protected:
 	void displayHelp();
   virtual void set_values_from_config_with_defaults(void);
   virtual void set_num_clones(int new_num_clones);
+  virtual HexPopulation *get_new_hex_population(void);
   virtual void create_population(void);
   void set_is_rigid(bool rigidity) { is_rigid = rigidity; };
 
