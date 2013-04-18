@@ -41,11 +41,11 @@ void CellCycle::try_survival(Cell &cell) {
     }
     if (survival_probability == 0.0 
         || !Random::bernoulli_check(survival_probability)) {
-      map<const Clone *, vector<const Cell *> * >::const_iterator iter;
+      std::map<const Clone *, std::vector<const Cell *> * >::const_iterator iter;
       iter = killed_cells_of_clone.find(cell.get_clone_ptr());
       if (iter == killed_cells_of_clone.end()) {
         killed_cells_of_clone[cell.get_clone_ptr()] 
-          = new vector<const Cell *>;
+          = new std::vector<const Cell *>;
       }
       killed_cells_of_clone[cell.get_clone_ptr()]->push_back(&cell);
       population.kill(cell);
@@ -97,9 +97,9 @@ void CellCycle::run(void) {
   global_try_reproduction();
 }
 
-const vector<const Cell *> *CellCycle::get_killed_cells_of_clone(
+const std::vector<const Cell *> *CellCycle::get_killed_cells_of_clone(
                                                           const Clone &clone) {
-  map<const Clone *, vector<const Cell *> *>::const_iterator iter;
+  std::map<const Clone *, std::vector<const Cell *> *>::const_iterator iter;
   iter = killed_cells_of_clone.find(&clone);
   if (iter == killed_cells_of_clone.end()) {
     return NULL;
@@ -109,7 +109,7 @@ const vector<const Cell *> *CellCycle::get_killed_cells_of_clone(
 }
 
 void CellCycle::clear_killed_cells_of_clone(void) {
-  map<const Clone *, vector<const Cell *> *>::const_iterator iter;
+  std::map<const Clone *, std::vector<const Cell *> *>::const_iterator iter;
   for (iter = killed_cells_of_clone.begin(); 
       iter != killed_cells_of_clone.end(); ++iter) {
     iter->second->clear();
@@ -117,7 +117,7 @@ void CellCycle::clear_killed_cells_of_clone(void) {
 }
 
 void CellCycle::clear_num_replication_records_of_clone(void) {
-  map<const Clone *, int>::const_iterator iter;
+  std::map<const Clone *, int>::const_iterator iter;
   for (iter = num_replication_records_of_clone.begin(); 
       iter != num_replication_records_of_clone.end(); ++iter) {
     num_replication_records_of_clone[iter->first] = 0;
@@ -126,7 +126,7 @@ void CellCycle::clear_num_replication_records_of_clone(void) {
 
 void CellCycle::const_map_replication_records(
                         function<void (const ReplicationRecord &)> proc) const {
-  map<const Clone *, int>::const_iterator num_iter;
+  std::map<const Clone *, int>::const_iterator num_iter;
   int i;
   for (num_iter = num_replication_records_of_clone.begin();
         num_iter != num_replication_records_of_clone.end();
@@ -140,7 +140,7 @@ void CellCycle::const_map_replication_records(
 void *CellCycle::const_fold_replication_records(
                       function<void *(void *, const ReplicationRecord &)> func, 
                       void *initial_value_ptr) const {
-  map<const Clone *, int>::const_iterator num_iter;
+  std::map<const Clone *, int>::const_iterator num_iter;
   int i;
   void *value_ptr = initial_value_ptr;
   for (num_iter = num_replication_records_of_clone.begin();
@@ -155,13 +155,13 @@ void *CellCycle::const_fold_replication_records(
 
 ReplicationRecord &CellCycle::get_next_replication_record_ptr_of_clone(
                                                         const Clone &clone) {
-  map<const Clone *, vector<ReplicationRecord *> *>::const_iterator iter;
+  std::map<const Clone *, std::vector<ReplicationRecord *> *>::const_iterator iter;
   iter = replication_records_of_clone.find(&clone);
   if (iter == replication_records_of_clone.end()) {
     replication_records_of_clone[&clone] 
-        = new vector<ReplicationRecord *>;
+        = new std::vector<ReplicationRecord *>;
   }
-  map<const Clone *, int>::const_iterator num_iter;
+  std::map<const Clone *, int>::const_iterator num_iter;
   num_iter = num_replication_records_of_clone.find(&clone);
   if (num_iter == num_replication_records_of_clone.end()) {
     num_replication_records_of_clone[&clone] = 0;
@@ -182,12 +182,12 @@ ReplicationRecord &CellCycle::get_next_replication_record_ptr_of_clone(
 }
 
 CellCycle::~CellCycle() {
-  map<const Clone *, vector<const Cell *> *>::const_iterator iter1;
+  std::map<const Clone *, std::vector<const Cell *> *>::const_iterator iter1;
   for (iter1 = killed_cells_of_clone.begin();
       iter1 != killed_cells_of_clone.end(); ++iter1) {
     delete iter1->second;
   }
-  map<const Clone *, vector<ReplicationRecord *> * >::const_iterator iter2;
+  std::map<const Clone *, std::vector<ReplicationRecord *> *>::const_iterator iter2;
   for (iter2 = replication_records_of_clone.begin();
       iter2 != replication_records_of_clone.end(); ++iter2) {
     for (int i = 0; i < iter2->second->size(); ++i) {

@@ -76,13 +76,14 @@ void HexPopulation::make_focus_of_clone_in_middle(Clone &clone) {
                           get_initial_height() / 2);
 }
 
-pair<int, int> HexPopulation::make_focus_of_clone_at_random_spot(Clone &clone) {
+std::pair<int, int> HexPopulation::make_focus_of_clone_at_random_spot(Clone &clone) 
+{
   int horiz_coord = Random::rand_int_between_inclusive(0, 
                                                     get_initial_width() - 1);
   int diag_coord = Random::rand_int_between_inclusive(0, 
                                                     get_initial_height() - 1);
   make_focus_of_clone_at(clone, horiz_coord, diag_coord);
-  return make_pair<int, int>(horiz_coord, diag_coord);
+  return std::make_pair<int, int>(horiz_coord, diag_coord);
 }
 
 void HexPopulation::envivify(void) {
@@ -1507,7 +1508,7 @@ int HexPopulation::fill_neighbor_buffer(HexCell &cell, bool require_dead) {
 }
 
 struct MedianDistanceData {
-  pair<int, int> *distances_to_clones_grid;
+  std::pair<int, int> *distances_to_clones_grid;
   const HexPopulation &population;
   bool some_distance_was_updated;
   MedianDistanceData(const HexPopulation &a_population);
@@ -1517,7 +1518,7 @@ struct MedianDistanceData {
 MedianDistanceData::MedianDistanceData(const HexPopulation &a_population) :
     population(a_population) {
   distances_to_clones_grid 
-    = new pair<int, int>[population.get_initial_width() *
+    = new std::pair<int, int>[population.get_initial_width() *
                           population.get_initial_height()];
 }
 
@@ -1568,7 +1569,7 @@ float HexPopulation::get_median_distance_from_clone_to_clone(const Clone &clone,
   // living cell of clone or neighbor_clone, respectively.
   int i;
   HexCell *hex_cell_ptr;
-  pair<int, int> *distances_ptr;
+  std::pair<int, int> *distances_ptr;
   for (i = 0, hex_cell_ptr = hex_cell_grid, 
       distances_ptr = median_distance_data.distances_to_clones_grid; 
       i < total_num_possible_cells; 
@@ -1600,7 +1601,7 @@ float HexPopulation::get_median_distance_from_clone_to_clone(const Clone &clone,
   } while (median_distance_data.some_distance_was_updated);
   // Now that the distances are correct, put them in a vector so we can sort
   // them.
-  vector<int> sorted_distances;
+  std::vector<int> sorted_distances;
   for (i = 0, distances_ptr = median_distance_data.distances_to_clones_grid;
       i < total_num_possible_cells;
       ++i, ++distances_ptr) {

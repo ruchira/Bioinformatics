@@ -46,7 +46,7 @@ class CellCycle{
     virtual ~CellCycle();
     virtual void run(void);
     const Population &get_population(void) const { return population; };
-    const vector<const Cell *> *get_killed_cells_of_clone(const Clone &clone);
+    const std::vector<const Cell *> *get_killed_cells_of_clone(const Clone &clone);
     // For every ReplicationRecord from the last run, this will call the
     // procedure proc.
     virtual void const_map_replication_records(
@@ -72,8 +72,8 @@ class CellCycle{
     Population &population;
   private:
     function<ReplicationRecord *(void)> make_new_replication_record;
-    map<const Clone *, vector<const Cell *> * > killed_cells_of_clone;
-    map<const Clone *, vector<ReplicationRecord *> * > 
+    std::map<const Clone *, std::vector<const Cell *> * > killed_cells_of_clone;
+    std::map<const Clone *, std::vector<ReplicationRecord *> * > 
         replication_records_of_clone;
     // Each ReplicationRecord instance controls a block of memory
     // corresponding to a concrete subclass of Cell.  To avoid continually
@@ -82,7 +82,7 @@ class CellCycle{
     // instances in the vector.  This means the size of the vector does not
     // accurately reflect the number of replication records from the last run.
     // Instead, we keep track of that number here.
-    map<const Clone *, int > num_replication_records_of_clone;
+    std::map<const Clone *, int > num_replication_records_of_clone;
     int total_num_killed_cells;
     int total_num_cells_that_replicated;
     void clear_killed_cells_of_clone();

@@ -46,7 +46,7 @@ class HexPopulation : public Population {
     // This puts a cell of the specified clone at the specified spot.
     void make_focus_of_clone_at(Clone &clone, int horiz_coord, int diag_coord);
     void make_focus_of_clone_in_middle(Clone &clone);
-    pair<int, int> make_focus_of_clone_at_random_spot(Clone &clone);
+    std::pair<int, int> make_focus_of_clone_at_random_spot(Clone &clone);
     void set_clone_of_cell(Clone &clone, HexCell &cell);
     // This envivifies all cells.
     void envivify(void);

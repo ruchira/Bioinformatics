@@ -32,11 +32,9 @@
 #define CLONE_H
 #include <map>
 
-using namespace std;
-
 class Clone;
 
-typedef map<Clone *, float> CoefficientEffectOnFitnessMap;
+typedef std::map<Clone *, float> CoefficientEffectOnFitnessMap;
 
 class Clone {
   public:

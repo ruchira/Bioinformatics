@@ -47,7 +47,7 @@ class HexCellCycle : public CellCycle {
 		std::set<Cell *> live_neighbors_of_dead_cells_set;
 		// We keep these here so the capacity will grow to the needed size and
 		// persist between runs (even though the vector itself will be cleared).
-		vector<Cell *> live_neighbors_of_dead_cells;
+		std::vector<Cell *> live_neighbors_of_dead_cells;
 		friend void *add_live_neighbor_of_dead_cell(void *data, Cell &cell,
 																								Cell &neighbor);
 };
