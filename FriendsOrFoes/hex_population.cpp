@@ -216,7 +216,7 @@ HexPopulation::~HexPopulation() {
   gsl_permutation_free(global_permutation_ptr);
   gsl_permutation_free(edge_neighbor_permutation_ptr);
   gsl_permutation_free(neighbor_permutation_ptr);
-  delete hex_cell_grid;
+  delete[] hex_cell_grid;
 }
 
 int HexPopulation::index_of_cell(int horiz_coord, int diag_coord) const {
