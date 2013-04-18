@@ -109,7 +109,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(1,numeric_limits<int>::max()))
+      .validator(new IntValidator(1,std::numeric_limits<int>::max()))
       .callback(OptionCallback<FriendsOrFoesApp>(this,
                                         &FriendsOrFoesApp::handleNumClones)));
 
@@ -132,7 +132,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(1,numeric_limits<int>::max()))
+      .validator(new IntValidator(1,std::numeric_limits<int>::max()))
       .binding("fof.maximum_time"));
 
   options.addOption(
@@ -140,7 +140,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(1,numeric_limits<unsigned long>::max()))
+      .validator(new IntValidator(1,std::numeric_limits<unsigned long>::max()))
       .binding("fof.random_seed"));
 
   options.addOption(
@@ -148,7 +148,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(2,numeric_limits<int>::max()))
+      .validator(new IntValidator(2,std::numeric_limits<int>::max()))
       .binding("fof.width"));
 
   options.addOption(
@@ -156,7 +156,7 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
       .required(false)
       .repeatable(false)
       .argument("value", true)
-      .validator(new IntValidator(1,numeric_limits<int>::max()))
+      .validator(new IntValidator(1,std::numeric_limits<int>::max()))
       .binding("fof.height"));
 
   options.addOption(
@@ -213,33 +213,33 @@ void FriendsOrFoesApp::defineOptions(OptionSet& options) {
 
 }
 	
-void FriendsOrFoesApp::handleHelp(const string& name, const string& value) {
+void FriendsOrFoesApp::handleHelp(const std::string& name, const std::string& value) {
   _helpRequested = true;
   displayHelp();
   stopOptionsProcessing();
 }
 
-void FriendsOrFoesApp::handleConfig(const string& name, const string& value) {
+void FriendsOrFoesApp::handleConfig(const std::string& name, const std::string& value) {
   loadConfiguration(value, PRIO_APPLICATION);
 }
 
-void FriendsOrFoesApp::handleOutputFile(const string& name, const string& value) 
+void FriendsOrFoesApp::handleOutputFile(const std::string& name, const std::string& value) 
 {
   output_file_base = value;
   config().setString("fof.output_file_base", value);
 }
 
-void FriendsOrFoesApp::handleNumClones(const string& name, const string& value) {
+void FriendsOrFoesApp::handleNumClones(const std::string& name, const std::string& value) {
   config().setString("fof.num_clones", value);
   set_num_clones(strtol(value.c_str(), NULL, 10));
 }
 
-void FriendsOrFoesApp::parseVectorEntry(const string& name, const string& value, 
+void FriendsOrFoesApp::parseVectorEntry(const std::string& name, const std::string& value, 
                                         int &i, float &x) {
-  string index;
-  string entry;
-  string::size_type pos = value.find(':');
-  if (pos != string::npos) {
+  std::string index;
+  std::string entry;
+  std::string::size_type pos = value.find(':');
+  if (pos != std::string::npos) {
     index.assign(value, 0, pos);
     entry.assign(value, pos + 1, value.length() - pos);
     i = strtol(index.c_str(), NULL, 10);
@@ -248,16 +248,16 @@ void FriendsOrFoesApp::parseVectorEntry(const string& name, const string& value,
   }
 }
 
-void FriendsOrFoesApp::parseMatrixEntry(const string& name, const string& value, 
+void FriendsOrFoesApp::parseMatrixEntry(const std::string& name, const std::string& value, 
                                         int &i, int &j, float &x) {
-  string row;
-  string col;
-  string entry;
-  string::size_type entry_pos = value.find(':');
-  if (entry_pos != string::npos) {
+  std::string row;
+  std::string col;
+  std::string entry;
+  std::string::size_type entry_pos = value.find(':');
+  if (entry_pos != std::string::npos) {
     entry.assign(value, entry_pos + 1, value.length() - entry_pos);
-    string::size_type col_pos = value.find(',');
-    if (col_pos != string::npos) {
+    std::string::size_type col_pos = value.find(',');
+    if (col_pos != std::string::npos) {
       row.assign(value, 0, col_pos);
       col.assign(value, col_pos + 1, entry_pos - col_pos - 1);
       i = strtol(row.c_str(), NULL, 10);
@@ -268,32 +268,32 @@ void FriendsOrFoesApp::parseMatrixEntry(const string& name, const string& value,
   }
 }
 
-void FriendsOrFoesApp::handleDefaultFitness(const string& name, 
-                                            const string& value) {
+void FriendsOrFoesApp::handleDefaultFitness(const std::string& name, 
+                                            const std::string& value) {
   int i;
   float x;
   parseVectorEntry(name, value, i, x);
   clone_ptrs.at(i)->set_default_fitness(x);
 } 
 
-void FriendsOrFoesApp::handleSurvivalCoefficient(const string& name, 
-                                                  const string& value) {
+void FriendsOrFoesApp::handleSurvivalCoefficient(const std::string& name, 
+                                                  const std::string& value) {
   int i;
   float x;
   parseVectorEntry(name, value, i, x);
   clone_ptrs.at(i)->set_survival_coefficient(x);
 }
 
-void FriendsOrFoesApp::handleReproductionCoefficient(const string& name, 
-                                                      const string& value) {
+void FriendsOrFoesApp::handleReproductionCoefficient(const std::string& name, 
+                                                      const std::string& value) {
   int i;
   float x;
   parseVectorEntry(name, value, i, x);
   clone_ptrs.at(i)->set_reproduction_coefficient(x);
 }
 
-void FriendsOrFoesApp::handleCellwiseInteraction(const string& name, 
-                                                  const string& value) {
+void FriendsOrFoesApp::handleCellwiseInteraction(const std::string& name, 
+                                                  const std::string& value) {
   
   int i, j;
   float x;
@@ -301,8 +301,8 @@ void FriendsOrFoesApp::handleCellwiseInteraction(const string& name,
   clone_ptrs.at(i)->set_constant_effect_of_clone(clone_ptrs.at(j), x);
 }
 
-void FriendsOrFoesApp::handleFitnesswiseInteraction(const string& name, 
-                                                    const string& value) {
+void FriendsOrFoesApp::handleFitnesswiseInteraction(const std::string& name, 
+                                                    const std::string& value) {
   int i, j;
   float x;
   parseMatrixEntry(name, value, i, j, x);
@@ -315,12 +315,12 @@ void FriendsOrFoesApp::displayHelp() {
   helpFormatter.setUsage("OPTIONS");
   helpFormatter.setHeader("Application to simulate coexistence, competition and cooperation in an epithelium.\nNB: Clones are numbered from 0.");
   helpFormatter.setWidth(256);
-  helpFormatter.format(cout);
+  helpFormatter.format(std::cout);
 }
 	
 void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
   if (!config().hasProperty("fof.num_clones")) {
-    stringstream strvalue;
+    std::stringstream strvalue;
     strvalue << num_clones;
     config().setString("fof.num_clones", strvalue.str());
   }
@@ -357,41 +357,41 @@ void FriendsOrFoesApp::set_values_from_config_with_defaults(void) {
     config().setString("fof.minimum_divisible_area", "5.0");
   }
   for (int i = 0; i < num_clones; ++i) {
-    stringstream default_fitness_name;
+    std::stringstream default_fitness_name;
     default_fitness_name << "fof.default_fitness_" << i;
     if (!config().hasProperty(default_fitness_name.str())) {
-      stringstream strvalue;
+      std::stringstream strvalue;
       strvalue << clone_ptrs[i]->get_default_fitness();
       config().setString(default_fitness_name.str(), strvalue.str());
     }
-    stringstream survival_coefficient_name;
+    std::stringstream survival_coefficient_name;
     survival_coefficient_name << "fof.survival_coefficient_" << i;
     if (!config().hasProperty(survival_coefficient_name.str())) {
-      stringstream strvalue;
+      std::stringstream strvalue;
       strvalue << clone_ptrs[i]->get_survival_coefficient();
       config().setString(survival_coefficient_name.str(), strvalue.str());
     }
-    stringstream reproduction_coefficient_name;
+    std::stringstream reproduction_coefficient_name;
     reproduction_coefficient_name << "fof.reproduction_coefficient_" << i;
     if (!config().hasProperty(reproduction_coefficient_name.str())) {
-      stringstream strvalue;
+      std::stringstream strvalue;
       strvalue << clone_ptrs[i]->get_reproduction_coefficient();
       config().setString(reproduction_coefficient_name.str(), strvalue.str());
     }
     for (int j = 0; j < num_clones; ++j) {
-      stringstream cellwise_interaction_name;
+      std::stringstream cellwise_interaction_name;
       cellwise_interaction_name << "fof.cellwise_interaction_"  << i 
                                                                 << "_" << j;
       if (!config().hasProperty(cellwise_interaction_name.str())) {
-        stringstream strvalue;
+        std::stringstream strvalue;
         strvalue<< clone_ptrs[i]->get_constant_effect_of_clone(clone_ptrs[j]);
         config().setString(cellwise_interaction_name.str(), strvalue.str());
       }
-      stringstream fitnesswise_interaction_name;
+      std::stringstream fitnesswise_interaction_name;
       fitnesswise_interaction_name << "fof.fitnesswise_interaction_"  << i 
                                                                 << "_" << j;
       if (!config().hasProperty(fitnesswise_interaction_name.str())) {
-        stringstream strvalue;
+        std::stringstream strvalue;
         strvalue << clone_ptrs[i]->get_linear_effect_of_clone(clone_ptrs[j]);
         config().setString(fitnesswise_interaction_name.str(),
                           strvalue.str());
@@ -420,7 +420,8 @@ void FriendsOrFoesApp::create_population(void) {
   }
 }
 
-void FriendsOrFoesApp::printProperties(const string& base, ostream &ostrm) const 
+void FriendsOrFoesApp::printProperties(const std::string& base, 
+                                      std::ostream &ostrm) const 
 {
   AbstractConfiguration::Keys keys;
   config().keys(base, keys);
@@ -428,12 +429,12 @@ void FriendsOrFoesApp::printProperties(const string& base, ostream &ostrm) const
   {
     if (config().hasProperty(base))
     {
-      string msg;
+      std::string msg;
       msg.append(base);
       msg.append(" = ");
       msg.append(config().getString(base));
       logger().information(msg);
-      ostrm << msg << endl;
+      ostrm << msg << std::endl;
     }
   }
   else
@@ -441,7 +442,7 @@ void FriendsOrFoesApp::printProperties(const string& base, ostream &ostrm) const
     for (AbstractConfiguration::Keys::const_iterator it = keys.begin(); 
         it != keys.end(); ++it)
     {
-      string fullKey = base;
+      std::string fullKey = base;
       if (!fullKey.empty()) fullKey += '.';
       fullKey.append(*it);
       printProperties(fullKey, ostrm);

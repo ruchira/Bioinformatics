@@ -40,7 +40,6 @@
 
 #include <iostream>
 #include <vector>
-using namespace std;
 using namespace Poco::Util;
 
 class FriendsOrFoesApp: public Application {
@@ -50,9 +49,9 @@ public:
   int get_num_clones(void) const { return num_clones; };
   bool get_is_rigid() const { return is_rigid; };
   const Clone &get_clone(int i) { return *clone_ptrs.at(i); };
-  const string &get_output_file_base(void) { return output_file_base; }
+  const std::string &get_output_file_base(void) { return output_file_base; }
   int get_maximum_time(void) { return maximum_time; }
-  void printProperties(const string& base, ostream &ostrm) const;
+  void printProperties(const std::string& base, std::ostream &ostrm) const;
   const Population *get_const_population_ptr(void) const { 
     return population_ptr; 
   }
@@ -64,20 +63,21 @@ protected:
 
   virtual void defineOptions(OptionSet& options);
 
-	void handleHelp(const string& name, const string& value);
-	void handleConfig(const string& name, const string& value);
-  void handleOutputFile(const string& name, const string& value);
-  void handleNumClones(const string& name, const string& value);
-  void handleRandomSeed(const string& name, const string& value);
-  void parseVectorEntry(const string& name, const string& value, 
+	void handleHelp(const std::string& name, const std::string& value);
+	void handleConfig(const std::string& name, const std::string& value);
+  void handleOutputFile(const std::string& name, const std::string& value);
+  void handleNumClones(const std::string& name, const std::string& value);
+  void handleRandomSeed(const std::string& name, const std::string& value);
+  void parseVectorEntry(const std::string& name, const std::string& value, 
                         int &i, float &x);
-  void parseMatrixEntry(const string& name, const string& value, 
+  void parseMatrixEntry(const std::string& name, const std::string& value, 
                     int &i, int &j, float &x);
-  void handleDefaultFitness(const string& name, const string& value);
-  void handleSurvivalCoefficient(const string& name, const string& value);
-  void handleReproductionCoefficient(const string& name, const string& value);
-  void handleCellwiseInteraction(const string& name, const string& value);
-  void handleFitnesswiseInteraction(const string& name, const string& value);
+  void handleDefaultFitness(const std::string& name, const std::string& value);
+  void handleSurvivalCoefficient(const std::string& name, const std::string& value);
+  void handleReproductionCoefficient(const std::string& name, 
+                                      const std::string& value);
+  void handleCellwiseInteraction(const std::string& name, const std::string& value);
+  void handleFitnesswiseInteraction(const std::string& name, const std::string& value);
 
 	void displayHelp();
   virtual void set_values_from_config_with_defaults(void);
@@ -87,8 +87,8 @@ protected:
   void set_is_rigid(bool rigidity) { is_rigid = rigidity; };
 
   int num_clones;
-  vector<Clone *> clone_ptrs;
-  string output_file_base;
+  std::vector<Clone *> clone_ptrs;
+  std::string output_file_base;
   bool is_rigid;
   int maximum_time;
   unsigned long random_seed;
