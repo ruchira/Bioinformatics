@@ -38,9 +38,9 @@ class RunFriendsOrFoesApp : public FriendsOrFoesApp {
   public:
     RunFriendsOrFoesApp() : FriendsOrFoesApp(), cell_cycle_ptr(NULL) {};
     virtual ~RunFriendsOrFoesApp();
-    int main(const vector<string>& args);
+    int main(const std::vector<std::string>& args);
     void create_cell_cycle(void);
-    void write_hex_cell_cycle_run(ostream &ostrm);
+    void write_hex_cell_cycle_run(std::ostream &ostrm);
   private:
     CellCycle *cell_cycle_ptr;
     friends_or_foes::HexPopulationEvent hex_population_event;

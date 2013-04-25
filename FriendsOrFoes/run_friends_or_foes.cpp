@@ -51,10 +51,11 @@ void RunFriendsOrFoesApp::create_cell_cycle(void) {
 }
 
 struct DataForWritingReplicationRecord {
-  DataForWritingReplicationRecord(HexPopulationEvent &event, ostream &strm) :
+  DataForWritingReplicationRecord(HexPopulationEvent &event, 
+                                  std::ostream &strm) :
     hex_population_event(event), ostrm(strm) {};
   HexPopulationEvent &hex_population_event;
-  ostream &ostrm;
+  std::ostream &ostrm;
 };
 
 void *write_replication_to_stream(void *data, const ReplicationRecord &record)
@@ -79,7 +80,7 @@ void *write_replication_to_stream(void *data, const ReplicationRecord &record)
   return data;
 }
 
-void RunFriendsOrFoesApp::write_hex_cell_cycle_run(ostream &ostrm) {
+void RunFriendsOrFoesApp::write_hex_cell_cycle_run(std::ostream &ostrm) {
   HexCellProto *hex_cell_proto0_ptr;
   HexPopulationEvent hex_population_event;
   int i, j;
@@ -87,7 +88,7 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(ostream &ostrm) {
   hex_population_event.set_type(HexPopulationEvent::kill);
   hex_cell_proto0_ptr = hex_population_event.mutable_cell0();
   for (i = 0; i < num_clones; ++i) {
-    const vector<const Cell *> *killed_cells 
+    const std::vector<const Cell *> *killed_cells 
       = cell_cycle_ptr->get_killed_cells_of_clone(*clone_ptrs[i]);
     if (killed_cells != NULL) {
       for (j = 0; j < killed_cells->size(); ++j) {
@@ -109,19 +110,20 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(ostream &ostrm) {
   hex_population_event.SerializeToOstream(&ostrm);
 }
 
-int RunFriendsOrFoesApp::main(const vector<string>& args) {
+int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
   if (!_helpRequested)
   {
     set_values_from_config_with_defaults();
-    string output_config = output_file_base + "_used.cnf";
-    ofstream cnfstrm;
-    cnfstrm.open(output_config.c_str(), ios::out);
+    std::string output_config = output_file_base + "_used.cnf";
+    std::ofstream cnfstrm;
+    cnfstrm.open(output_config.c_str(), std::ios::out);
     printProperties("fof", cnfstrm);
     cnfstrm.close();
 
-    string output_file_name = output_file_base + (is_rigid ? ".hxg" : ".flx");
-    ofstream ostrm;
-    ostrm.open(output_file_name.c_str(), ios::out);
+    std::string output_file_name 
+      = output_file_base + (is_rigid ? ".hxg" : ".flx");
+    std::ofstream ostrm;
+    ostrm.open(output_file_name.c_str(), std::ios::out);
     try {
 #ifdef USING_MPI
       // MPI-2 conformant MPI implementations are required to allow
@@ -147,8 +149,8 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
 #ifdef USING_MPI
       MPI_Finalize();
 #endif
-    } catch(exception& e) {
-        cerr << "error: " << e.what() << "\n";
+    } catch(std::exception& e) {
+        std::cerr << "error: " << e.what() << "\n";
         ostrm.close();
         Random::finalize();
 #ifdef USING_MPI
@@ -157,7 +159,7 @@ int RunFriendsOrFoesApp::main(const vector<string>& args) {
         return 1;
     }
     catch(...) {
-        cerr << "Exception of unknown type!\n";
+        std::cerr << "Exception of unknown type!\n";
         ostrm.close();
         Random::finalize();
 #ifdef USING_MPI
