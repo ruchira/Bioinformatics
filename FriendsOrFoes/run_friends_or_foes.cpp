@@ -149,6 +149,11 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 #ifdef USING_MPI
       MPI_Finalize();
 #endif
+      std::string max_fitness_file_name = output_file_base + ".max";
+      std::ofstream maxstrm;
+      maxstrm.open(max_fitness_file_name.c_str(), std::ios::out);
+      maxstrm << population_ptr->get_max_fitness_ever();
+      maxstrm.close();
     } catch(std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";
         ostrm.close();

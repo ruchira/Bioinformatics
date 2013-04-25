@@ -137,6 +137,9 @@ void Population::update_fitness(Cell &cell) {
   if (cell.is_alive()) {
     cell.reset_fitness();
     map_neighbors(get_neighbor_affect_cell_func(), cell);
+    if (cell.get_fitness() > max_fitness_ever) {
+      max_fitness_ever = cell.get_fitness();
+    }
   }
 }
 

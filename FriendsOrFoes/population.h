@@ -44,7 +44,7 @@ class Population {
           function<void(Cell &, Cell &)> func
             =neighbor_affect_cell_through_affine_function) : 
         initial_width(width), initial_height(height), initial_depth(depth),
-        neighbor_affect_cell_func(func) {};
+        neighbor_affect_cell_func(func), max_fitness_ever(0.0) {};
     virtual ~Population() {};
     int get_initial_width(void) const { return initial_width; };
     int get_initial_height(void) const { return initial_height; };
@@ -193,6 +193,7 @@ class Population {
     virtual float get_size_of_boundary_of_clone(const Clone &clone) const;
     virtual float get_median_distance_from_clone_to_clone(const Clone &clone,
                                     const Clone &neighbor_clone) const = 0;
+    virtual float get_max_fitness_ever(void) const { return max_fitness_ever; };
     virtual void kill(Cell &cell) {
       cell.kill();
     };
@@ -210,6 +211,7 @@ class Population {
     }
   private:
     int initial_width, initial_height, initial_depth;
+    float max_fitness_ever;
     // The second argument is the neighbor which is affecting the first
     // argument.
     function<void(Cell &, Cell &)> neighbor_affect_cell_func;
