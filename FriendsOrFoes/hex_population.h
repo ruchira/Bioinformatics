@@ -49,7 +49,7 @@ class HexPopulation : public Population {
     std::pair<int, int> make_focus_of_clone_at_random_spot(Clone &clone);
     void set_clone_of_cell(Clone &clone, HexCell &cell);
     // This envivifies all cells.
-    void envivify(void);
+    virtual void envivify(void);
 
     /*
      * Methods to act globally or locally on the population of cells
