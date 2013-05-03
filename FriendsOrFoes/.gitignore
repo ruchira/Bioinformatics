@@ -1,4 +1,7 @@
+see_friends_or_foes
 run_friends_or_foes
+*.cnf
+*.hxg
 *.o
 .*.swp
 *.pb.h
