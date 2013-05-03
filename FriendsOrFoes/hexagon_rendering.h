@@ -82,7 +82,7 @@ class HexagonRendering {
     // filling in this method, which will initialize the
     // diagonal_line_specification array.  The memory for the array is managed
     // by this HexagonRendering superclass, the subclass need only fill in the
-    // values.
+    // values.  For symmetry the values should be palindromic.
     virtual void specify_diagonal_line(void) {};
   private:
     int side; // The number of pixels in the unit length.  

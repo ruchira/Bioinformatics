@@ -31,6 +31,15 @@
 #include "hexagon_renderings.h"
 #include <cassert>
 
+// This file contains hexagon renderings at a variety of magnifications.
+// For each, the diagonal segments are perfectly symmetric, and the hexagon is
+// as close to regular as possible at the given resolution.
+// Magnification 0 gives the smallest hexagons (3 px wide x 4 px high), allowing
+// the most to appear in a given space.
+// Magnification 4 gives the largest hexagons (59 px wide x 68 px high).  At
+// publication quality resolution of 600 dpi, each hexagon will be 1/10" wide,
+// so will be visually distinct.
+
 HexagonRendering0 *hexagon_rendering0_ptr = NULL;
 HexagonRendering1 *hexagon_rendering1_ptr = NULL;
 HexagonRendering2 *hexagon_rendering2_ptr = NULL;
@@ -524,6 +533,8 @@ void HexagonRendering4::specify_diagonal_line(void) {
   // The hexagon looks taller and skinnier than it actually is in this ASCII
   // rendering, because the character box is a tall skinny rectangle rather than
   // a square.
+  // Even at a publication quality resolution of 600 dpi, these hexagons will be
+  // 1/10" wide, so will be visually distinct.
 
   // Here are 3 rows of hexagons, with 3 complete ones in the middle row.
   /*
