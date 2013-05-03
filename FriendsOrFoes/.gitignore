@@ -1,7 +1,9 @@
 see_friends_or_foes
 run_friends_or_foes
 *.cnf
+*.properties
 *.hxg
+*.max
 *.o
 .*.swp
 *.pb.h
