@@ -114,7 +114,7 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
   if (!_helpRequested)
   {
     set_values_from_config_with_defaults();
-    std::string output_config = output_file_base + "_used.cnf";
+    std::string output_config = output_file_base + ".properties";
     std::ofstream cnfstrm;
     cnfstrm.open(output_config.c_str(), std::ios::out);
     printProperties("fof", cnfstrm);
