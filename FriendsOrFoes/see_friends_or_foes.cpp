@@ -121,6 +121,7 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
     std::ifstream istrm;
     istrm.open(input_file_name.c_str(), std::ios::in);
     try {
+      allegro_init();
       create_population();
       int generation;
       for (generation = 0; generation < maximum_time; ++generation) {
