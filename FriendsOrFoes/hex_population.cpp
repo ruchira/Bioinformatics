@@ -203,6 +203,13 @@ HexPopulation::HexPopulation(int width, int height,
   // The grid consists of successive rows, each of which is contiguous in the
   // memory block.
   hex_cell_grid = new HexCell[total_num_possible_cells];
+  HexCell *hex_cell_ptr = hex_cell_grid;
+  for (int i = 0; i < width; ++i) {
+    for (int j = 0; j < height; ++j, ++hex_cell_ptr) {
+      hex_cell_ptr->set_horiz_coord(i);
+      hex_cell_ptr->set_diag_coord(j);
+    }
+  }
   global_permutation_size = total_num_possible_cells;
   neighbor_permutation_ptr = gsl_permutation_alloc(neighbor_permutation_size);
   edge_neighbor_permutation_ptr 
