@@ -30,14 +30,13 @@
 // DAMAGE.
 #include "hexagon_rendering.h"
 #include <stdlib.h>
+#include <cassert>
 
 HexagonRendering::HexagonRendering(int new_side, int new_width) {
   if (new_side % 2 == 0) {
     side = new_side;
-    if (new_width % 2 == 1 and ((new_width - 1) / 2) % 2 == (side / 2) % 2)
-    {
-      width = new_width;
-    }
+    assert(new_width % 2 == 1 && ((new_width - 1) / 2) % 2 == (side / 2) % 2);
+    width = new_width;
     /*
     |   |   |
     | a |   |
