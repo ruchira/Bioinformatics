@@ -129,9 +129,7 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 					break;
 				}
       }
-			if (generation < maximum_time) {
-				visualize(generation);
-			}
+      visualize(generation);
 			istrm.close();
     } catch(std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";
