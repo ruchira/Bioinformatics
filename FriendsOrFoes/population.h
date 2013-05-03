@@ -209,6 +209,10 @@ class Population {
     function<void(Cell &, Cell &)> &get_neighbor_affect_cell_func(void) {
       return neighbor_affect_cell_func;
     }
+  protected:
+    virtual void set_max_fitness_ever(float fitness) {
+      max_fitness_ever = fitness;
+    };
   private:
     int initial_width, initial_height, initial_depth;
     float max_fitness_ever;
