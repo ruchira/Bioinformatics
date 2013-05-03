@@ -104,7 +104,7 @@ bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(std::istream &istrm
 void SeeFriendsOrFoesApp::set_values_from_config_with_defaults(void) {
   FriendsOrFoesApp::set_values_from_config_with_defaults();
   if (!config().hasProperty("fof.magnification")) {
-    config().setString("fof.magnificaion", "0");
+    config().setString("fof.magnification", "0");
   }
 }
 
