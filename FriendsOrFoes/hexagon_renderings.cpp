@@ -48,7 +48,7 @@ HexagonRendering4 *hexagon_rendering4_ptr = NULL;
 
 HexagonRendering &get_the_hexagon_rendering(int magnification_step, 
                                             int num_hues) {
-  assert(magnification_step <= 0);
+  assert(magnification_step >= 0);
   switch (magnification_step) {
     case 0:
       return HexagonRendering0::get_the_hexagon_rendering0(num_hues);
