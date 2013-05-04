@@ -29,46 +29,79 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "hexagon_rendering.h"
+#include "hsv_to_rgb.h"
+#include "distinct_hues.h"
 #include <stdlib.h>
 #include <cassert>
 
-HexagonRendering::HexagonRendering(int new_side, int new_width) {
-  if (new_side % 2 == 0) {
-    side = new_side;
-    assert(new_width % 2 == 1 && ((new_width - 1) / 2) % 2 == (side / 2) % 2);
-    width = new_width;
-    /*
-    |   |   |
-    | a |   |
-     \ / \ /
-      |   |
-      |   |
-      | b |
-     / \ / \
-    |   |   |
-    |   |   |
-    The diagonal offset is between the point a, the upper left corner of the
-    rectangular region containing the middle hexagon, and the point b, the
-    corresponding point in the rectangular region containing the lower right
-    hexagon.
-    */
-    diagonal_offset.first = (width - 1) / 2;
-    diagonal_offset.second = side/2 + side - 1;
-    diagonal_line_specification = (int *)malloc((side / 2 - 1) * sizeof(int));
-    specify_diagonal_line();
-    sprite = create_bitmap(width - 1, 2 * side - 1);
-    // This clears the bitmap with color 0, the mask color (which is white)
-    clear_bitmap(sprite);
-    fill_hexagon(black);
+HexagonRendering::HexagonRendering(int new_side, int new_width, 
+                                    int new_num_hues) : 
+  side(new_side), width(new_width), num_hues(num_hues) {
+  assert(new_side % 2 == 0);
+  assert(new_width % 2 == 1 && ((new_width - 1) / 2) % 2 == (side / 2) % 2);
+  /*
+  |   |   |
+  | a |   |
+   \ / \ /
+    |   |
+    |   |
+    | b |
+   / \ / \
+  |   |   |
+  |   |   |
+  The diagonal offset is between the point a, the upper left corner of the
+  rectangular region containing the middle hexagon, and the point b, the
+  corresponding point in the rectangular region containing the lower right
+  hexagon.
+  */
+  diagonal_offset.first = (width - 1) / 2;
+  diagonal_offset.second = side/2 + side - 1;
+  diagonal_line_specification = (int *)malloc((side / 2 - 1) * sizeof(int));
+  specify_diagonal_line();
+
+  // Initialize the palette to black. (Any unused colors will remain black.)
+  set_palette(black_palette);
+
+
+  // The last entry in the palette is black, to represent a dead cell.  Since
+  // the whole palette is black already, we can skip initializing this one.
+
+  assert(num_hues <= 10);
+
+  RGB rgb;
+  const int *distinct_hue_degrees = get_distinct_hue_degrees(num_hues);
+
+  sprites = (BITMAP **)malloc((num_hues + 1) * sizeof(BITMAP *));
+  int sprite_index;
+  // Palette index 0 represents the mask color, so we skip it.
+  int current_palette_index = 1;
+  for (sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
+    sprites[sprite_index] = create_bitmap(width - 1, 2 * side - 1);
+    // This clears the bitmap to the mask color
+    clear_bitmap(sprites[sprite_index]);
+    if (sprite_index == 0) {
+      // Fill the hexagon with black
+      fill_hexagon(sprite_index, black);
+    } else {
+      hsv_to_rgb(distinct_hue_degrees[sprite_index - 1], 1.0, 1.0, rgb);
+      set_color(current_palette_index, &rgb);
+      fill_hexagon(sprite_index, current_palette_index);
+      ++current_palette_index;
+    }
   }
+  PALETTE palette;
+  get_palette(palette);
+  create_light_table(&light_table, palette, 0, 0, 0, NULL);
 }
 
 HexagonRendering::~HexagonRendering() {
-  destroy_bitmap(sprite);
+  for (int sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
+    destroy_bitmap(sprites[sprite_index]);
+  }
   free(diagonal_line_specification);
 }
 
-void HexagonRendering::fill_hexagon(int color) {
+void HexagonRendering::fill_hexagon(int sprite_index, int color) {
   int row, upper_row, lower_row, min_col, max_col;
   // The vertical sides are the leftmost and rightmost columns, going from
   // vertical side/2 through side/2 + side - 1.  The leftmost and rightmost
@@ -77,7 +110,7 @@ void HexagonRendering::fill_hexagon(int color) {
   min_col = 1;
   max_col = width - 2;
   for (row = side/2; row < side/2 + side; ++row) {
-    hline(sprite, min_col, row, max_col, color);
+    hline(sprites[sprite_index], min_col, row, max_col, color);
   }
   int i;
   for (i = 0, upper_row = side/2 - 1, lower_row = side/2 + side;
@@ -85,7 +118,7 @@ void HexagonRendering::fill_hexagon(int color) {
       i++, upper_row--, lower_row++) {
     min_col += diagonal_line_specification[i];
     max_col -= diagonal_line_specification[i];
-    hline(sprite, min_col, upper_row, max_col, color);
-    hline(sprite, min_col, lower_row, max_col, color);
+    hline(sprites[sprite_index], min_col, upper_row, max_col, color);
+    hline(sprites[sprite_index], min_col, lower_row, max_col, color);
   }
 }

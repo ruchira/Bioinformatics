@@ -36,8 +36,9 @@
 
 class HexagonRendering {
   public:
-    void render(BITMAP *destination, int x, int y, int color) const {
-      draw_lit_sprite(destination, sprite, x, y, color);
+    void render(BITMAP *destination, int x, int y, int light, 
+                int sprite_number) const {
+      draw_lit_sprite(destination, sprites[sprite_number], x, y, light);
     }
     int get_side(void) const { return side; };
     int get_width(void) const { return width; };
@@ -58,7 +59,7 @@ class HexagonRendering {
     // The hexagon will occupy a rectangular region, 
     // width pixels wide by 2 * side pixels high.  
     // width / side should be close to sqrt(3).
-    HexagonRendering(int new_side, int new_width);
+    HexagonRendering(int new_side, int new_width, int num_hues);
     virtual ~HexagonRendering();
     // The leftmost and rightmost columns contain the vertical
     // sides of the hexagon.  Thus, here pixels with vertical coordinates from
@@ -87,20 +88,25 @@ class HexagonRendering {
   private:
     int side; // The number of pixels in the unit length.  
     int width;  // The number of pixels wide.
+    int num_hues; // The number of different hues (besides black) to use
+
     // The offset of the upper left corner of the rectangular region
     // corresponding to the next lower right hexagonal neighbor of this
     // hexagon.
     std::pair<int, int> diagonal_offset;
-    // This is the actual sprite, with the interior pixels of the rendered
+
+    // These are the actual sprites, with the interior pixels of the rendered
     // hexagon colored and all other pixels at color 0 (indicating
     // transparency).
     // Note that the rightmost column and bottommost row are omitted, since
     // only black boundary pixels are included there from this hexagon.
-    // So the sprite is actually width - 1 pixels wide and 2 * side - 1 pixels
+    // So each sprite is actually width - 1 pixels wide and 2 * side - 1 pixels
     // high.
-    BITMAP *sprite;
+    // There are num_hues + 1 of these (the 0th one is black)
+    BITMAP **sprites;
+    COLOR_MAP light_table;
     // This fills the interior of the hexagon with color.
-    void fill_hexagon(int color = 1);
+    void fill_hexagon(int sprite_index, int color);
 };
 
 #endif

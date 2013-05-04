@@ -79,12 +79,8 @@ class VisualizeHexPopulation : public HexPopulation {
     std::map<Clone *, int> index_of_clone;
     float fitness_increment;
     const HexagonRendering &hexagon_rendering;
-    // This fills the palette with colors for depicting cells of different
-    // clones with different fitness levels.
     // Each clone has a distinct hue; cells are colored with decreasing
     // value (as in hue, saturation, value)  as they become less fit.
-    // It returns the total number of distinct values.  
-    void initialize_colors(std::vector<Clone *> &clone_ptrs);
     // These take const arguments because the cell instance is the *model* of
     // the cell, whereas these actually just color the *view* of the cell in
     // the rendered frame.
@@ -95,6 +91,7 @@ class VisualizeHexPopulation : public HexPopulation {
     friend void * color_hex_cell_func(void *data, Cell &cell);
 		BITMAP *frame;
     int frame_width_in_pixels;
+    int frame_height_in_pixels;
     // The hexagon coordinates run horizontally and diagonally within the
     // rectangular frame.  So the strip of hexagons is positioned like this
     // within the rectangular frame:

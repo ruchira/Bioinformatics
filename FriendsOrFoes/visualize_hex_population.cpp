@@ -31,68 +31,6 @@
 #include "visualize_hex_population.h"
 #include <math.h>
 #include <cassert>
-#include "hsv_to_rgb.h"
-#include "distinct_hues.h"
-
-void VisualizeHexPopulation::initialize_colors(
-                                            std::vector<Clone *> &clone_ptrs) {
-  int num_clones = clone_ptrs.size();
-  assert(num_clones <= 10);
-  // Initialize the palette to black. (Any unused colors will remain black.)
-  set_palette(black_palette);
-
-  RGB rgb, rgb_increment;
-  // The zeroth entry in the palette is the mask (transparent) color.
-  // We'll make this white.
-  rgb.r = 0xFF;
-  rgb.g = 0xFF;
-  rgb.b = 0xFF;
-  set_color(0, &rgb);
-  // The last entry in the palette is black, to represent a dead cell.  Since
-  // the whole palette is black already, we can skip initializing this one.
-
-  // Divide up the PAL_SIZE - 2 colors remaining evenly among clones.
-  // Each clone will have a distinct hue.  The fitness level of a cell of a
-  // particular clone will be depicted by its value (as in, hue, saturation,
-  // value).
-  num_values = (PAL_SIZE - 2) / num_clones;
-  float value_increment = 1.0 / num_values;
-  fitness_increment = get_max_fitness_ever() * value_increment;
-
-  int current_palette_index = 1;
-  const int *distinct_hue_degrees = get_distinct_hue_degrees(num_clones);
-  int hue;
-
-  int level;
-  float current_value;
-  for (int clone_num = 0; clone_num < num_clones; ++clone_num) {
-    index_of_clone[clone_ptrs[clone_num]] = clone_num;
-    hue = distinct_hue_degrees[clone_num];
-    rgb.r = 0;
-    rgb.g = 0;
-    rgb.b = 0;
-    hsv_to_rgb(hue, 1.0, value_increment, rgb_increment);
-    for (level = 1; level <= num_values; ++level) {
-      if (rgb.r + rgb_increment.r > 255) {
-        rgb.r = 255;
-      } else {
-        rgb.r += rgb_increment.r;
-      }
-      if (rgb.g + rgb_increment.g > 255) {
-        rgb.g = 255;
-      } else {
-        rgb.g += rgb_increment.g;
-      }
-      if (rgb.b + rgb_increment.b > 255) {
-        rgb.b = 255;
-      } else {
-        rgb.b += rgb_increment.b;
-      }
-      set_color(current_palette_index, &rgb);
-      ++current_palette_index;
-    }
-  }
-}
 
 VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
                                           std::vector<Clone *> &clone_ptrs,
@@ -132,18 +70,18 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
 	// the length of an equilateral triangle of side one, and so is the distance
 	// from the center to vertex B.  So the height of a single hexagon is 2.
 
-  initialize_colors(clone_ptrs);
+  fitness_increment = get_max_fitness_ever() / 255;
 
   strip_width_in_pixels = get_left_coord_in_pixels_of_cell_at(
                                     get_initial_width(), 0);
   frame_width_in_pixels = get_left_coord_in_pixels_of_cell_at(
                                    get_initial_width(), get_initial_height());
-  int height_in_pixels = get_top_coord_in_pixels_of_cell_at(get_initial_width(),
+  frame_height_in_pixels = get_top_coord_in_pixels_of_cell_at(get_initial_width(),
                                                           get_initial_height());
 
-  frame = create_bitmap(frame_width_in_pixels, height_in_pixels);
+  frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
   // Fill with black
-  rectfill(frame, 0, 0, frame_width_in_pixels - 1, height_in_pixels - 1,
+  rectfill(frame, 0, 0, frame_width_in_pixels - 1, frame_height_in_pixels - 1,
             HexagonRendering::black);
 }
 
@@ -162,15 +100,15 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
                                               cell.get_diag_coord());
   int y = get_top_coord_in_pixels_of_cell_at(cell.get_horiz_coord(),
                                               cell.get_diag_coord());
-  int color;
+  int light, clone_number;
   if (cell.is_alive()) {
-    int i = index_of_clone[cell.get_clone_ptr()];
-    int level = ceil(cell.get_fitness() / fitness_increment);
-    color = level + i * num_values;
+    light = ceil(cell.get_fitness() / fitness_increment);
+    clone_number = 1 + index_of_clone[cell.get_clone_ptr()];
   } else {
-    color = HexagonRendering::black;
+    light = 0;
+    clone_number = 0;
   }
-  hexagon_rendering.render(frame, x, y, color);
+  hexagon_rendering.render(frame, x, y, light, clone_number);
   // The hexagon coordinates run horizontally and diagonally within the
   // rectangular frame.  So the strip of hexagons is positioned like this
   // within the rectangular frame:
@@ -187,11 +125,13 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
   // strip appear again in the frame in region D.
   if (x + strip_width_in_pixels < frame_width_in_pixels) {
     // The hexagon is in region B; render it again in region D
-    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, color);
+    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, light, 
+                              clone_number);
   }
   if (x + hexagon_rendering.get_width() - strip_width_in_pixels > 0) {
     // The hexagon is in region C; render it again in region A
-    hexagon_rendering.render(frame, x - strip_width_in_pixels, y, color);
+    hexagon_rendering.render(frame, x - strip_width_in_pixels, y, light,
+                              clone_number);
   }
 }
 

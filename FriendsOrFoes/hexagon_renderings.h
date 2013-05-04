@@ -34,48 +34,49 @@
 
 class HexagonRendering0 : public HexagonRendering {
   public:
-    static HexagonRendering0 &get_the_hexagon_rendering0(void);
+    static HexagonRendering0 &get_the_hexagon_rendering0(int num_hues);
   protected:
-    HexagonRendering0();
+    HexagonRendering0(int num_hues);
     virtual ~HexagonRendering0();
     virtual void specify_diagonal_line(void);
 };
 
 class HexagonRendering1 : public HexagonRendering {
   public:
-    static HexagonRendering1 &get_the_hexagon_rendering1(void);
+    static HexagonRendering1 &get_the_hexagon_rendering1(int num_hues);
   protected:
-    HexagonRendering1();
+    HexagonRendering1(int num_hues);
     virtual ~HexagonRendering1();
     virtual void specify_diagonal_line(void);
 };
 
 class HexagonRendering2 : public HexagonRendering {
   public:
-    static HexagonRendering2 &get_the_hexagon_rendering2(void);
+    static HexagonRendering2 &get_the_hexagon_rendering2(int num_hues);
   protected:
-    HexagonRendering2();
+    HexagonRendering2(int num_hues);
     virtual ~HexagonRendering2();
     virtual void specify_diagonal_line(void);
 };
 
 class HexagonRendering3 : public HexagonRendering {
   public:
-    static HexagonRendering3 &get_the_hexagon_rendering3(void);
+    static HexagonRendering3 &get_the_hexagon_rendering3(int num_hues);
   protected:
-    HexagonRendering3();
+    HexagonRendering3(int num_hues);
     virtual ~HexagonRendering3();
     virtual void specify_diagonal_line(void);
 };
 
 class HexagonRendering4 : public HexagonRendering {
   public:
-    static HexagonRendering4 &get_the_hexagon_rendering4(void);
+    static HexagonRendering4 &get_the_hexagon_rendering4(int num_hues);
   protected:
-    HexagonRendering4();
+    HexagonRendering4(int num_hues);
     virtual ~HexagonRendering4();
     virtual void specify_diagonal_line(void);
 };
 
-extern HexagonRendering &get_the_hexagon_rendering(int magnification_step);
+extern HexagonRendering &get_the_hexagon_rendering(int magnification_step,
+                                                    int num_hues);
 #endif

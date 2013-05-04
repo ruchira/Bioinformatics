@@ -46,37 +46,38 @@ HexagonRendering2 *hexagon_rendering2_ptr = NULL;
 HexagonRendering3 *hexagon_rendering3_ptr = NULL;
 HexagonRendering4 *hexagon_rendering4_ptr = NULL;
 
-HexagonRendering &get_the_hexagon_rendering(int magnification_step) {
+HexagonRendering &get_the_hexagon_rendering(int magnification_step, 
+                                            int num_hues) {
   assert(magnification_step <= 0);
   switch (magnification_step) {
     case 0:
-      return HexagonRendering0::get_the_hexagon_rendering0();
+      return HexagonRendering0::get_the_hexagon_rendering0(num_hues);
       break;
     case 1:
-      return HexagonRendering1::get_the_hexagon_rendering1();
+      return HexagonRendering1::get_the_hexagon_rendering1(num_hues);
       break;
     case 2:
-      return HexagonRendering2::get_the_hexagon_rendering2();
+      return HexagonRendering2::get_the_hexagon_rendering2(num_hues);
       break;
     case 3:
-      return HexagonRendering3::get_the_hexagon_rendering3();
+      return HexagonRendering3::get_the_hexagon_rendering3(num_hues);
       break;
     case 4:
     default:
-      return HexagonRendering4::get_the_hexagon_rendering4();
+      return HexagonRendering4::get_the_hexagon_rendering4(num_hues);
       break;
   }
 }
 
-HexagonRendering0 &HexagonRendering0::get_the_hexagon_rendering0(void) {
+HexagonRendering0 &HexagonRendering0::get_the_hexagon_rendering0(int num_hues) {
   if (hexagon_rendering0_ptr == NULL) {
-    hexagon_rendering0_ptr = new HexagonRendering0();
+    hexagon_rendering0_ptr = new HexagonRendering0(num_hues);
   }
   return *hexagon_rendering0_ptr;
 }
 
-HexagonRendering0::HexagonRendering0() : HexagonRendering(2, 3) {
-}
+HexagonRendering0::HexagonRendering0(int num_hues) 
+  : HexagonRendering(2, 3, num_hues) {}
 
 HexagonRendering0::~HexagonRendering0() {
   delete hexagon_rendering0_ptr;
@@ -112,15 +113,15 @@ void HexagonRendering0::specify_diagonal_line(void) {
   // horizontal and vertical sides.
 }
 
-HexagonRendering1 &HexagonRendering1::get_the_hexagon_rendering1(void) {
+HexagonRendering1 &HexagonRendering1::get_the_hexagon_rendering1(int num_hues) {
   if (hexagon_rendering1_ptr == NULL) {
-    hexagon_rendering1_ptr = new HexagonRendering1();
+    hexagon_rendering1_ptr = new HexagonRendering1(num_hues);
   }
   return *hexagon_rendering1_ptr;
 }
 
-HexagonRendering1::HexagonRendering1() : HexagonRendering(4, 7) {
-}
+HexagonRendering1::HexagonRendering1(int num_hues) 
+    : HexagonRendering(4, 7, num_hues) {}
 
 HexagonRendering1::~HexagonRendering1() {
   delete hexagon_rendering1_ptr;
@@ -167,15 +168,15 @@ void HexagonRendering1::specify_diagonal_line(void) {
   diagonal_line_specification[0] = 2;
 }
 
-HexagonRendering2 &HexagonRendering2::get_the_hexagon_rendering2(void) {
+HexagonRendering2 &HexagonRendering2::get_the_hexagon_rendering2(int num_hues) {
   if (hexagon_rendering2_ptr == NULL) {
-    hexagon_rendering2_ptr = new HexagonRendering2();
+    hexagon_rendering2_ptr = new HexagonRendering2(num_hues);
   }
   return *hexagon_rendering2_ptr;
 }
 
-HexagonRendering2::HexagonRendering2() : HexagonRendering(12, 21) {
-}
+HexagonRendering2::HexagonRendering2(int num_hues) 
+  : HexagonRendering(12, 21, num_hues) {}
 
 HexagonRendering2::~HexagonRendering2() {
   delete hexagon_rendering2_ptr;
@@ -283,15 +284,15 @@ void HexagonRendering2::specify_diagonal_line(void) {
   diagonal_line_specification[4] = 2;
 }
 
-HexagonRendering3 &HexagonRendering3::get_the_hexagon_rendering3(void) {
+HexagonRendering3 &HexagonRendering3::get_the_hexagon_rendering3(int num_hues) {
   if (hexagon_rendering3_ptr == NULL) {
-    hexagon_rendering3_ptr = new HexagonRendering3();
+    hexagon_rendering3_ptr = new HexagonRendering3(num_hues);
   }
   return *hexagon_rendering3_ptr;
 }
 
-HexagonRendering3::HexagonRendering3() : HexagonRendering(18, 31) {
-}
+HexagonRendering3::HexagonRendering3(int num_hues) 
+  : HexagonRendering(18, 31, num_hues) {}
 
 HexagonRendering3::~HexagonRendering3() {
   delete hexagon_rendering3_ptr;
@@ -443,15 +444,15 @@ void HexagonRendering3::specify_diagonal_line(void) {
   diagonal_line_specification[7] = 2;
 }
 
-HexagonRendering4 &HexagonRendering4::get_the_hexagon_rendering4(void) {
+HexagonRendering4 &HexagonRendering4::get_the_hexagon_rendering4(int num_hues) {
   if (hexagon_rendering4_ptr == NULL) {
-    hexagon_rendering4_ptr = new HexagonRendering4();
+    hexagon_rendering4_ptr = new HexagonRendering4(num_hues);
   }
   return *hexagon_rendering4_ptr;
 }
 
-HexagonRendering4::HexagonRendering4() : HexagonRendering(34, 59) {
-}
+HexagonRendering4::HexagonRendering4(int num_hues) 
+  : HexagonRendering(34, 59, num_hues) {}
 
 HexagonRendering4::~HexagonRendering4() {
   delete hexagon_rendering4_ptr;

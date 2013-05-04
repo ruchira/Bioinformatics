@@ -57,7 +57,8 @@ HexPopulation *SeeFriendsOrFoesApp::get_new_hex_population(void) {
       strtol(config().getString("fof.height").c_str(), NULL, 10),
       clone_ptrs,
       get_the_hexagon_rendering(
-        strtol(config().getString("fof.magnification").c_str(), NULL, 10)),
+        strtol(config().getString("fof.magnification").c_str(), NULL, 10),
+        num_clones),
       max_fitness_ever);
   return hex_population_ptr;
 }
