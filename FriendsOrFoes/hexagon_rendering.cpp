@@ -33,6 +33,8 @@
 #include "distinct_hues.h"
 #include <stdlib.h>
 #include <cassert>
+#include <iostream>
+#include <sstream>
 
 HexagonRendering::HexagonRendering(int new_side, int new_width, 
                                     int new_num_hues) : 
@@ -80,7 +82,7 @@ void HexagonRendering::initialize(void) {
   // Palette index 0 represents the mask color, so we skip it.
   int current_palette_index = 1;
   for (sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
-    sprites[sprite_index] = create_bitmap(width - 1, 2 * side - 1);
+    sprites[sprite_index] = create_bitmap(width, 2 * side);
     // This clears the bitmap to the mask color
     clear_bitmap(sprites[sprite_index]);
     if (sprite_index == 0) {
@@ -95,6 +97,39 @@ void HexagonRendering::initialize(void) {
   }
   PALETTE palette;
   get_palette(palette);
+  for (sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
+    std::cout << "Sprite " << sprite_index << std::endl;
+    for (int row = 0; row < sprites[sprite_index]->h; ++row) {
+      unsigned char *char_ptr = sprites[sprite_index]->line[row];
+      for (int col = 0; col < sprites[sprite_index]->w; ++col) {
+        std::cout << ((*char_ptr == 0) ? '_' : 'o');
+        ++char_ptr;
+      }
+      std::cout << std::endl;
+    }
+    std::ostringstream os;
+    os << "sprite_" << sprite_index << ".bmp";
+    save_bmp(os.str().c_str(), sprites[sprite_index], palette);
+    BITMAP *bitmap;
+    PALETTE other_palette;
+    bitmap = load_bmp(os.str().c_str(), other_palette);
+    std::cout << "Color 1 reloaded: " << int(other_palette[1].r) << "," <<
+    int(other_palette[1].g) << "," << int(other_palette[1].b) << std::endl;
+    std::cout << "Color 2 reloaded: " << int(other_palette[2].r) << "," <<
+    int(other_palette[2].g) << "," << int(other_palette[2].b) << std::endl;
+    std::cout << "Color 255 reloaded: " << int(other_palette[255].r) << "," <<
+    int(other_palette[255].g) << "," << int(other_palette[255].b) << std::endl;
+    std::cout << "Saved and loaded back" << std::endl;
+    for (int row = 0; row < bitmap->h; ++row) {
+      unsigned char *char_ptr = bitmap->line[row];
+      for (int col = 0; col < bitmap->w; ++col) {
+        std::cout << ((*char_ptr == 0) ? '_' : 'o');
+        ++char_ptr;
+      }
+      std::cout << std::endl;
+    }
+    destroy_bitmap(bitmap);
+  }
   create_light_table(&light_table, palette, 0, 0, 0, NULL);
 }
 

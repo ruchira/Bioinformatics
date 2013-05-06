@@ -38,6 +38,7 @@
 #include <string>
 #include "Poco/Util/IntValidator.h"
 
+
 using namespace friends_or_foes;
 
 void SeeFriendsOrFoesApp::defineOptions(OptionSet& options) {
@@ -125,14 +126,18 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       allegro_init();
       set_color_depth(8);
       create_population();
+      std::cout << "Finished creating population" << std::endl;
+      readkey();
       int generation;
       for (generation = 0; generation < maximum_time; ++generation) {
 				visualize(generation);
+        readkey();
         if (!read_and_replay_hex_cell_cycle_run(istrm)) {
 					break;
 				}
       }
       visualize(generation);
+      readkey();
 			istrm.close();
     } catch(std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";

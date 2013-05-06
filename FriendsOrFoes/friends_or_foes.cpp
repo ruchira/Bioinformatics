@@ -35,6 +35,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <allegro.h>
+
 #include "Poco/Util/IntValidator.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Util/AbstractConfiguration.h"
@@ -413,10 +415,15 @@ void FriendsOrFoesApp::create_population(void) {
   }
   if (is_rigid) {
     HexPopulation *hex_population_ptr = get_new_hex_population();
+    std::cout << "Got population" << std::endl;
     hex_population_ptr->fill_field_with_clone(*clone_ptrs.at(0));
+    std::cout << "Filled field with clone 0" << std::endl;
     hex_population_ptr->make_focus_of_clone_in_middle(*clone_ptrs.at(1));
+    std::cout << "Made focus of clone 1 in middle" << std::endl;
     hex_population_ptr->envivify();
+    std::cout << "Envivified" << std::endl;
     population_ptr = hex_population_ptr;
+    std::cout << "Returning" << std::endl;
   }
 }
 

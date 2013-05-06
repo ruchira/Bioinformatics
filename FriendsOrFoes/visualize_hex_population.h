@@ -35,6 +35,7 @@
 #include <allegro.h>
 #include <vector>
 #include <map>
+#include <iostream>
 
 class VisualizeHexPopulation : public HexPopulation {
 	public:
@@ -47,7 +48,15 @@ class VisualizeHexPopulation : public HexPopulation {
 		void visualize(const char *output_filename) {
       PALETTE palette;
       get_palette(palette);
-      save_bitmap(output_filename, frame, palette);
+      for (int row = 0; row < frame->h; ++row) {
+        unsigned char *char_ptr = frame->line[row];
+        for (int col = 0; col < frame->w; ++col) {
+          std::cout << ((*char_ptr == 0) ? '_' : 'o');
+          ++char_ptr;
+        }
+        std::cout << std::endl;
+      }
+      save_bmp(output_filename, frame, palette);
     };
     virtual void envivify(void);
     virtual void kill(Cell &cell) { 

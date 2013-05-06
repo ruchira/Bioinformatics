@@ -33,12 +33,18 @@
 
 #include <utility>
 #include <allegro.h>
+#include <iostream>
 
 class HexagonRendering {
   public:
     void render(BITMAP *destination, int x, int y, int light, 
                 int sprite_number) const {
-      draw_lit_sprite(destination, sprites[sprite_number], x, y, light);
+      std::cout << "Draw sprite " << sprite_number << " to dest at "
+      << x << "," << y << " with light " << light << std::endl;
+      readkey();
+//      draw_lit_sprite(destination, sprites[sprite_number], x, y, light);
+      draw_sprite(destination, sprites[sprite_number], x, y);
+      std::cout << "Drew it" << std::endl;
     }
     int get_side(void) const { return side; };
     int get_width(void) const { return width; };

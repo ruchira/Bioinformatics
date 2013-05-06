@@ -80,9 +80,19 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
                                                           get_initial_height());
 
   frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
+  int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480,
+  frame_width_in_pixels, frame_height_in_pixels);
+  std::cout << "status: " << status << std::endl;
+  std::cout << "SCREEN_W " << SCREEN_W << " SCREEN_H " << SCREEN_H
+    << " VIRTUAL_W " << VIRTUAL_W << " VIRTUAL_H " << VIRTUAL_H << std::endl;
+  status = install_keyboard();
+  std::cout << "status: " << status << std::endl;
   // Fill with black
+  rectfill(screen, 0, 0, frame_width_in_pixels - 1, frame_height_in_pixels - 1,
+            HexagonRendering::black);
   rectfill(frame, 0, 0, frame_width_in_pixels - 1, frame_height_in_pixels - 1,
             HexagonRendering::black);
+  std::cout << "Finished constructing VisualizeHexPopulation" << std::endl;
 }
 
 VisualizeHexPopulation::~VisualizeHexPopulation() {
@@ -108,7 +118,11 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
     light = 0;
     clone_number = 0;
   }
-  hexagon_rendering.render(frame, x, y, light, clone_number);
+  std::cout << "Color cell " << cell.get_horiz_coord() << "," <<
+  cell.get_diag_coord() << " at " << x << "," << y << " with light " << light
+  << std::endl;
+  readkey();
+  hexagon_rendering.render(screen, x, y, light, clone_number);
   // The hexagon coordinates run horizontally and diagonally within the
   // rectangular frame.  So the strip of hexagons is positioned like this
   // within the rectangular frame:
@@ -125,12 +139,12 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
   // strip appear again in the frame in region D.
   if (x + strip_width_in_pixels < frame_width_in_pixels) {
     // The hexagon is in region B; render it again in region D
-    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, light, 
+    hexagon_rendering.render(screen, x + strip_width_in_pixels, y, light, 
                               clone_number);
   }
   if (x + hexagon_rendering.get_width() - strip_width_in_pixels > 0) {
     // The hexagon is in region C; render it again in region A
-    hexagon_rendering.render(frame, x - strip_width_in_pixels, y, light,
+    hexagon_rendering.render(screen, x - strip_width_in_pixels, y, light,
                               clone_number);
   }
 }
