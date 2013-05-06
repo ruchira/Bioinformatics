@@ -36,7 +36,7 @@
 
 HexagonRendering::HexagonRendering(int new_side, int new_width, 
                                     int new_num_hues) : 
-  side(new_side), width(new_width), num_hues(num_hues) {
+  side(new_side), width(new_width), num_hues(new_num_hues) {
   assert(new_side % 2 == 0);
   assert(new_width % 2 == 1 && ((new_width - 1) / 2) % 2 == (side / 2) % 2);
   /*
@@ -57,6 +57,10 @@ HexagonRendering::HexagonRendering(int new_side, int new_width,
   diagonal_offset.first = (width - 1) / 2;
   diagonal_offset.second = side/2 + side - 1;
   diagonal_line_specification = (int *)malloc((side / 2 - 1) * sizeof(int));
+
+}
+
+void HexagonRendering::initialize(void) {
   specify_diagonal_line();
 
   // Initialize the palette to black. (Any unused colors will remain black.)

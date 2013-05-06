@@ -61,6 +61,7 @@ class HexagonRendering {
     // width / side should be close to sqrt(3).
     HexagonRendering(int new_side, int new_width, int num_hues);
     virtual ~HexagonRendering();
+    virtual void initialize(void);
     // The leftmost and rightmost columns contain the vertical
     // sides of the hexagon.  Thus, here pixels with vertical coordinates from
     // side / 2 to side / 2 + side - 1 constitute the boundary.
@@ -84,7 +85,7 @@ class HexagonRendering {
     // diagonal_line_specification array.  The memory for the array is managed
     // by this HexagonRendering superclass, the subclass need only fill in the
     // values.  For symmetry the values should be palindromic.
-    virtual void specify_diagonal_line(void) {};
+    virtual void specify_diagonal_line(void) = 0;
   private:
     int side; // The number of pixels in the unit length.  
     int width;  // The number of pixels wide.
