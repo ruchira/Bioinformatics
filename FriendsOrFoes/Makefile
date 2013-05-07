@@ -100,5 +100,5 @@ see_friends_or_foes: $(COMMON_OBJECTS) $(SEE_OBJECTS)
 	$(CXXCOMPILE) $(INCLUDES) $(DEFINES) -c -o $@ $<
 
 clean:
-	@rm -f run_friends_or_foes see_friends_or_foes $(COMMON_OBJECTS) $(RUN_OBJECTS) hex_cell_history.pb.h hex_cell_history.pb.cc
+	@rm -f run_friends_or_foes see_friends_or_foes $(COMMON_OBJECTS) $(RUN_OBJECTS) $(SEE_OBJECTS) hex_cell_history.pb.h hex_cell_history.pb.cc
 
