@@ -67,6 +67,7 @@ void HexagonRendering::initialize(void) {
   // Initialize the palette to black. (Any unused colors will remain black.)
   set_palette(black_palette);
 
+  color_map = (COLOR_MAP *)malloc(sizeof(COLOR_MAP));
 
   // The last entry in the palette is black, to represent a dead cell.  Since
   // the whole palette is black already, we can skip initializing this one.
