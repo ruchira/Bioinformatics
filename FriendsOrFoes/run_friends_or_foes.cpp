@@ -76,6 +76,8 @@ void *write_replication_to_stream(void *data, const ReplicationRecord &record)
         hex_record_ptr->get_hex_daughter1_ptr()->get_horiz_coord());
   hex_cell_proto1_ptr->set_diag_coord(
         hex_record_ptr->get_hex_daughter1_ptr()->get_diag_coord());
+  std::cout << "Serializing event of type " << pStruct->hex_population_event.type()
+  << std::endl;
   pStruct->hex_population_event.SerializeToOstream(&pStruct->ostrm);
   return data;
 }
@@ -96,6 +98,8 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(std::ostream &ostrm) {
           ((const HexCell *)killed_cells->at(j))->get_horiz_coord());
         hex_cell_proto0_ptr->set_diag_coord(
           ((const HexCell *)killed_cells->at(j))->get_diag_coord());
+        std::cout << "Serializing event of type " << hex_population_event.type()
+        << std::endl;
         hex_population_event.SerializeToOstream(&ostrm);
       }
     }
@@ -107,6 +111,8 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(std::ostream &ostrm) {
   hex_population_event.clear_cell0();
   hex_population_event.clear_cell1();
   hex_population_event.set_type(HexPopulationEvent::stop);
+  std::cout << "Serializing event of type " << hex_population_event.type()
+  << std::endl;
   hex_population_event.SerializeToOstream(&ostrm);
 }
 

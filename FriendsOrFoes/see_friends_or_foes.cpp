@@ -85,6 +85,8 @@ bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(std::istream &istrm
 		hex_population_event.Clear();
 		read_event = hex_population_event.ParseFromIstream(&istrm);
 		if (read_event) {
+      std::cout << "Read event of type " << hex_population_event.type() <<
+      std::endl;
 			result = true;
 			if (hex_population_event.type() == HexPopulationEvent::kill) {
 				population_ptr->kill(*get_hex_cell_ptr_of_hex_cell_proto(
@@ -134,7 +136,9 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 					break;
 				}
       }
-      visualize(generation);
+      if (generation == maximum_time) {
+        visualize(generation);
+      }
       readkey();
 			istrm.close();
     } catch(std::exception& e) {
