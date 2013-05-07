@@ -140,7 +140,6 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
     hexagon_rendering.render(frame, x - strip_width_in_pixels, y, light,
                               clone_number);
   }
-  draw_sprite(screen, frame, 0, 0);
 }
 
 void VisualizeHexPopulation::envivify(void) {

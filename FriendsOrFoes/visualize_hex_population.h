@@ -46,6 +46,7 @@ class VisualizeHexPopulation : public HexPopulation {
 		virtual ~VisualizeHexPopulation();
     // This will write the current frame to the named output file.
 		void visualize(const char *output_filename) {
+      draw_sprite(screen, frame, 0, 0);
       PALETTE palette;
       get_palette(palette);
       save_bmp(output_filename, frame, palette);
