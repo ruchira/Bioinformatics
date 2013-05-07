@@ -48,14 +48,6 @@ class VisualizeHexPopulation : public HexPopulation {
 		void visualize(const char *output_filename) {
       PALETTE palette;
       get_palette(palette);
-      for (int row = 0; row < frame->h; ++row) {
-        unsigned char *char_ptr = frame->line[row];
-        for (int col = 0; col < frame->w; ++col) {
-          std::cout << ((*char_ptr == 0) ? '_' : 'o');
-          ++char_ptr;
-        }
-        std::cout << std::endl;
-      }
       save_bmp(output_filename, frame, palette);
     };
     virtual void envivify(void);
@@ -75,7 +67,10 @@ class VisualizeHexPopulation : public HexPopulation {
     };
   protected:
     int get_left_coord_in_pixels_of_cell_at(int horiz_coord, int diag_coord) {
-      return (horiz_coord * hexagon_rendering.get_width() +
+      // The rightmost column of one hexagon is the leftmost column of the
+      // next, so each hexagon effectively takes up only
+      // hexagon_rendering.get_width() - 1 pixels in width.
+      return (horiz_coord * (hexagon_rendering.get_width() - 1) +
             diag_coord 
             * hexagon_rendering.get_horizontal_component_of_diagonal_offset());
     }
