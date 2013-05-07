@@ -40,7 +40,6 @@ HexagonRendering::HexagonRendering(int new_side, int new_width,
                                     int new_num_hues) : 
   side(new_side), width(new_width), num_hues(new_num_hues) {
   assert(new_side % 2 == 0);
-  assert(new_width % 2 == 1 && ((new_width - 1) / 2) % 2 == (side / 2) % 2);
   /*
   |   |   |
   | a |   |
