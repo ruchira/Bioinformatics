@@ -76,11 +76,12 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
                                     get_initial_width(), 0);
   frame_width_in_pixels = get_left_coord_in_pixels_of_cell_at(
                                    get_initial_width(), get_initial_height());
-  frame_height_in_pixels = get_top_coord_in_pixels_of_cell_at(get_initial_width(),
-                                                          get_initial_height());
+  frame_height_in_pixels = get_top_coord_in_pixels_of_cell_at(
+                                   get_initial_width(), get_initial_height()-1)
+                          + 2 * hexagon_rendering.get_side();
 
   frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
-  int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480,
+  int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 320, 240,
                             frame_width_in_pixels, frame_height_in_pixels);
   status = install_keyboard();
   // Fill with black
@@ -114,7 +115,7 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
     light = 0;
     clone_number = 0;
   }
-  hexagon_rendering.render(screen, x, y, light, clone_number);
+  hexagon_rendering.render(frame, x, y, light, clone_number);
   // The hexagon coordinates run horizontally and diagonally within the
   // rectangular frame.  So the strip of hexagons is positioned like this
   // within the rectangular frame:
@@ -131,14 +132,15 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
   // strip appear again in the frame in region D.
   if (x + strip_width_in_pixels < frame_width_in_pixels) {
     // The hexagon is in region B; render it again in region D
-    hexagon_rendering.render(screen, x + strip_width_in_pixels, y, light, 
+    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, light, 
                               clone_number);
   }
   if (x + hexagon_rendering.get_width() - strip_width_in_pixels > 0) {
     // The hexagon is in region C; render it again in region A
-    hexagon_rendering.render(screen, x - strip_width_in_pixels, y, light,
+    hexagon_rendering.render(frame, x - strip_width_in_pixels, y, light,
                               clone_number);
   }
+  draw_sprite(screen, frame, 0, 0);
 }
 
 void VisualizeHexPopulation::envivify(void) {
