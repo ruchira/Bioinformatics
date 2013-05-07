@@ -33,7 +33,6 @@
 
 #include <utility>
 #include <allegro.h>
-#include <iostream>
 
 class HexagonRendering {
   public:
@@ -56,13 +55,13 @@ class HexagonRendering {
     };
     // The last color in the palette is black
     static const int black = PAL_SIZE - 1;
+    virtual void initialize(void);
   protected:
     // The hexagon will occupy a rectangular region, 
     // width pixels wide by 2 * side pixels high.  
     // width / side should be close to sqrt(3).
     HexagonRendering(int new_side, int new_width, int num_hues);
     virtual ~HexagonRendering();
-    virtual void initialize(void);
     // The leftmost and rightmost columns contain the vertical
     // sides of the hexagon.  Thus, here pixels with vertical coordinates from
     // side / 2 to side / 2 + side - 1 constitute the boundary.
@@ -106,7 +105,6 @@ class HexagonRendering {
     // high.
     // There are num_hues + 1 of these (the 0th one is black)
     BITMAP **sprites;
-    COLOR_MAP light_table;
     // This fills the interior of the hexagon with color.
     void fill_hexagon(int sprite_index, int color);
 };

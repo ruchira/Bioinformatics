@@ -41,7 +41,7 @@ class VisualizeHexPopulation : public HexPopulation {
 	public:
 		VisualizeHexPopulation(int width, int height, 
                             std::vector<Clone *> &clone_ptrs,
-                            const HexagonRendering &a_hexagon_rendering,
+                            HexagonRendering &a_hexagon_rendering,
                             float max_fitness_ever_seen);
 		virtual ~VisualizeHexPopulation();
     // This will write the current frame to the named output file.
@@ -69,6 +69,7 @@ class VisualizeHexPopulation : public HexPopulation {
       color_cell(*replication_record.get_daughter1_ptr());
     };
   protected:
+    virtual void initialize_colors(int num_clones);
     int get_left_coord_in_pixels_of_cell_at(int horiz_coord, int diag_coord) {
       // The rightmost column of one hexagon is the leftmost column of the
       // next, so each hexagon effectively takes up only
@@ -85,7 +86,7 @@ class VisualizeHexPopulation : public HexPopulation {
     int num_values;
     std::map<Clone *, int> index_of_clone;
     float fitness_increment;
-    const HexagonRendering &hexagon_rendering;
+    HexagonRendering &hexagon_rendering;
     // Each clone has a distinct hue; cells are colored with decreasing
     // value (as in hue, saturation, value)  as they become less fit.
     // These take const arguments because the cell instance is the *model* of
@@ -114,6 +115,7 @@ class VisualizeHexPopulation : public HexPopulation {
     // again in the frame in region A, and the hexagons in region B of the
     // strip appear again in the frame in region D.
     int strip_width_in_pixels;
+    COLOR_MAP light_table;
 };
 
 #endif

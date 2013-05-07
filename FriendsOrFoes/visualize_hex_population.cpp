@@ -29,12 +29,13 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "visualize_hex_population.h"
+#include "distinct_hues.h"
 #include <math.h>
 #include <cassert>
 
 VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
                                           std::vector<Clone *> &clone_ptrs,
-                                  const HexagonRendering &a_hexagon_rendering,
+                                  HexagonRendering &a_hexagon_rendering,
                                   float max_fitness_ever_seen) :
 	HexPopulation(width, height), hexagon_rendering(a_hexagon_rendering) {
   set_max_fitness_ever(max_fitness_ever_seen);
@@ -90,10 +91,69 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
   for (int clone_index = 0; clone_index < clone_ptrs.size(); ++clone_index) {
     index_of_clone[clone_ptrs[clone_index]] = clone_index;
   }
+  initialize_colors(clone_ptrs.size());
+  hexagon_rendering.initialize();
 }
 
 VisualizeHexPopulation::~VisualizeHexPopulation() {
   destroy_bitmap(frame);
+}
+
+void VisualizeHexPopulation::initialize_colors(int num_clones) {
+  assert(num_clones <= 10);
+  PALETTE palette;
+
+  // The last entry in the palette is black, to represent a dead cell.  
+  palette[HexagonRendering::black].r = 0;
+  palette[HexagonRendering::black].g = 0;
+  palette[HexagonRendering::black].b = 0;
+
+  const int *distinct_hue_degrees = get_distinct_hue_degrees(num_clones);
+
+  // Palette index 0 represents the mask color, so it is not actually used.
+  palette[0].r = 0;
+  palette[0].g = 0;
+  palette[0].b = 0;
+  int current_palette_index;
+  int r, g, b;
+  // Leaving out the mask color 0 and the last color black, there are PAL_SIZE
+  // colors in the palette; these are partitioned among the hues.  We've
+  // already put the maximum level, with value = 1.0, in the palette.
+  int num_levels = (PAL_SIZE - 2) / num_clones - 1;
+  float value_increment = 1.0 / num_levels;
+  int level;
+  RGB rgb;
+  current_palette_index = num_clones + 1;
+  for (int hue_num = 0; hue_num < num_clones; ++hue_num) {
+    rgb.r = 0;
+    rgb.g = 0;
+    rgb.b = 0;
+    hsv_to_rgb(distinct_hue_degrees[hue_num - 1], 1.0, value_increment,
+                &r, &g, &b);
+    for (level = 0; level < num_levels; ++level) {
+      rgb.r += r;
+      rgb.g += g;
+      rgb.b += b;
+      palette[current_palette_index].r = rgb.r;
+      palette[current_palette_index].g = rgb.g;
+      palette[current_palette_index].b = rgb.b;
+      ++current_palette_index;
+    }
+    rgb.r += r;
+    rgb.g += g;
+    rgb.b += b;
+    palette[hue_num+1].r = rgb.r;
+    palette[hue_num+1].g = rgb.g;
+    palette[hue_num+1].b = rgb.b;
+  }
+  for (; current_palette_index < PAL_SIZE - 1; ++current_palette_index) {
+    palette[current_palette_index].r = 0;
+    palette[current_palette_index].g = 0;
+    palette[current_palette_index].b = 0;
+  }
+  set_palette(palette);
+  create_light_table(&light_table, palette, 0, 0, 0, NULL);
+  color_map = &light_table;
 }
 
 void * color_hex_cell_func(void *data, Cell &cell) {
@@ -132,7 +192,7 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
   // strip appear again in the frame in region D.
   if (x + strip_width_in_pixels < frame_width_in_pixels) {
     // The hexagon is in region B; render it again in region D
-    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, light, 
+    hexagon_rendering.render(frame, x + strip_width_in_pixels, y, 255, 
                               clone_number);
   }
   if (x + hexagon_rendering.get_width() - strip_width_in_pixels > 0) {

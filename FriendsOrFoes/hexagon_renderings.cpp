@@ -72,7 +72,6 @@ HexagonRendering &get_the_hexagon_rendering(int magnification_step,
 HexagonRendering0 &HexagonRendering0::get_the_hexagon_rendering0(int num_hues) {
   if (hexagon_rendering0_ptr == NULL) {
     hexagon_rendering0_ptr = new HexagonRendering0(num_hues);
-    hexagon_rendering0_ptr->initialize();
   }
   return *hexagon_rendering0_ptr;
 }
@@ -117,7 +116,6 @@ void HexagonRendering0::specify_diagonal_line(void) {
 HexagonRendering1 &HexagonRendering1::get_the_hexagon_rendering1(int num_hues) {
   if (hexagon_rendering1_ptr == NULL) {
     hexagon_rendering1_ptr = new HexagonRendering1(num_hues);
-    hexagon_rendering1_ptr->initialize();
   }
   return *hexagon_rendering1_ptr;
 }
@@ -173,7 +171,6 @@ void HexagonRendering1::specify_diagonal_line(void) {
 HexagonRendering2 &HexagonRendering2::get_the_hexagon_rendering2(int num_hues) {
   if (hexagon_rendering2_ptr == NULL) {
     hexagon_rendering2_ptr = new HexagonRendering2(num_hues);
-    hexagon_rendering2_ptr->initialize();
   }
   return *hexagon_rendering2_ptr;
 }
@@ -290,7 +287,6 @@ void HexagonRendering2::specify_diagonal_line(void) {
 HexagonRendering3 &HexagonRendering3::get_the_hexagon_rendering3(int num_hues) {
   if (hexagon_rendering3_ptr == NULL) {
     hexagon_rendering3_ptr = new HexagonRendering3(num_hues);
-    hexagon_rendering3_ptr->initialize();
   }
   return *hexagon_rendering3_ptr;
 }
@@ -451,7 +447,6 @@ void HexagonRendering3::specify_diagonal_line(void) {
 HexagonRendering4 &HexagonRendering4::get_the_hexagon_rendering4(int num_hues) {
   if (hexagon_rendering4_ptr == NULL) {
     hexagon_rendering4_ptr = new HexagonRendering4(num_hues);
-    hexagon_rendering4_ptr->initialize();
   }
   return *hexagon_rendering4_ptr;
 }

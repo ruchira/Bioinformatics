@@ -29,12 +29,8 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "hexagon_rendering.h"
-#include "hsv_to_rgb.h"
-#include "distinct_hues.h"
 #include <stdlib.h>
 #include <cassert>
-#include <iostream>
-#include <sstream>
 
 HexagonRendering::HexagonRendering(int new_side, int new_width, 
                                     int new_num_hues) : 
@@ -64,23 +60,8 @@ HexagonRendering::HexagonRendering(int new_side, int new_width,
 void HexagonRendering::initialize(void) {
   specify_diagonal_line();
 
-  // Initialize the palette to black. (Any unused colors will remain black.)
-  set_palette(black_palette);
-
-  color_map = (COLOR_MAP *)malloc(sizeof(COLOR_MAP));
-
-  // The last entry in the palette is black, to represent a dead cell.  Since
-  // the whole palette is black already, we can skip initializing this one.
-
-  assert(num_hues <= 10);
-
-  RGB rgb;
-  const int *distinct_hue_degrees = get_distinct_hue_degrees(num_hues);
-
   sprites = (BITMAP **)malloc((num_hues + 1) * sizeof(BITMAP *));
   int sprite_index;
-  // Palette index 0 represents the mask color, so we skip it.
-  int current_palette_index = 1;
   for (sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
     sprites[sprite_index] = create_bitmap(width, 2 * side);
     // This clears the bitmap to the mask color
@@ -89,20 +70,9 @@ void HexagonRendering::initialize(void) {
       // Fill the hexagon with black
       fill_hexagon(sprite_index, black);
     } else {
-      hsv_to_rgb(distinct_hue_degrees[sprite_index - 1], 1.0, 1.0, rgb);
-      set_color(current_palette_index, &rgb);
-      fill_hexagon(sprite_index, current_palette_index);
-      ++current_palette_index;
+      fill_hexagon(sprite_index, sprite_index);
     }
   }
-  PALETTE palette;
-  get_palette(palette);
-  for (sprite_index = 0; sprite_index <= num_hues; ++sprite_index) {
-    std::ostringstream os;
-    os << "sprite_" << sprite_index << ".bmp";
-    save_bmp(os.str().c_str(), sprites[sprite_index], palette);
-  }
-  create_light_table(&light_table, palette, 0, 0, 0, NULL);
 }
 
 HexagonRendering::~HexagonRendering() {
