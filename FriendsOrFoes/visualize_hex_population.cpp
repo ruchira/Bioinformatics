@@ -88,10 +88,8 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
   status = install_keyboard();
   std::cout << "status: " << status << std::endl;
   // Fill with black
-  rectfill(screen, 0, 0, frame_width_in_pixels - 1, frame_height_in_pixels - 1,
-            HexagonRendering::black);
-  rectfill(frame, 0, 0, frame_width_in_pixels - 1, frame_height_in_pixels - 1,
-            HexagonRendering::black);
+  clear_bitmap(screen);
+  clear_bitmap(frame);
   std::cout << "Finished constructing VisualizeHexPopulation" << std::endl;
 }
 
