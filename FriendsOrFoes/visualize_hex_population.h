@@ -49,7 +49,9 @@ class VisualizeHexPopulation : public HexPopulation {
       draw_sprite(screen, frame, 0, 0);
       PALETTE palette;
       get_palette(palette);
+      acquire_bitmap(frame);
       save_bmp(output_filename, frame, palette);
+      release_bitmap(frame);
     };
     virtual void envivify(void);
     virtual void kill(Cell &cell) { 
