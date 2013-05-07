@@ -81,19 +81,14 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
 
   frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
   int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480,
-  frame_width_in_pixels, frame_height_in_pixels);
-  std::cout << "status: " << status << std::endl;
-  std::cout << "SCREEN_W " << SCREEN_W << " SCREEN_H " << SCREEN_H
-    << " VIRTUAL_W " << VIRTUAL_W << " VIRTUAL_H " << VIRTUAL_H << std::endl;
+                            frame_width_in_pixels, frame_height_in_pixels);
   status = install_keyboard();
-  std::cout << "status: " << status << std::endl;
   // Fill with black
   clear_bitmap(screen);
   clear_bitmap(frame);
   for (int clone_index = 0; clone_index < clone_ptrs.size(); ++clone_index) {
     index_of_clone[clone_ptrs[clone_index]] = clone_index;
   }
-  std::cout << "Finished constructing VisualizeHexPopulation" << std::endl;
 }
 
 VisualizeHexPopulation::~VisualizeHexPopulation() {
@@ -119,9 +114,6 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
     light = 0;
     clone_number = 0;
   }
-  std::cout << "Color cell " << cell.get_horiz_coord() << "," <<
-  cell.get_diag_coord() << " at " << x << "," << y << " with light " << light
-  << std::endl;
   hexagon_rendering.render(screen, x, y, light, clone_number);
   // The hexagon coordinates run horizontally and diagonally within the
   // rectangular frame.  So the strip of hexagons is positioned like this

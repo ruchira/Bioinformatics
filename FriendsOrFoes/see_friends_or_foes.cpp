@@ -126,7 +126,6 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       allegro_init();
       set_color_depth(8);
       create_population();
-      std::cout << "Finished creating population" << std::endl;
       readkey();
       int generation;
       for (generation = 0; generation < maximum_time; ++generation) {
