@@ -90,6 +90,9 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
   // Fill with black
   clear_bitmap(screen);
   clear_bitmap(frame);
+  for (int clone_index = 0; clone_index < clone_ptrs.size(); ++clone_index) {
+    index_of_clone[clone_ptrs[clone_index]] = clone_index;
+  }
   std::cout << "Finished constructing VisualizeHexPopulation" << std::endl;
 }
 
@@ -119,7 +122,6 @@ void VisualizeHexPopulation::color_hex_cell(const HexCell &cell) {
   std::cout << "Color cell " << cell.get_horiz_coord() << "," <<
   cell.get_diag_coord() << " at " << x << "," << y << " with light " << light
   << std::endl;
-  readkey();
   hexagon_rendering.render(screen, x, y, light, clone_number);
   // The hexagon coordinates run horizontally and diagonally within the
   // rectangular frame.  So the strip of hexagons is positioned like this
