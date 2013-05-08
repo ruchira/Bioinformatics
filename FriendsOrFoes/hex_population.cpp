@@ -204,8 +204,8 @@ HexPopulation::HexPopulation(int width, int height,
   // memory block.
   hex_cell_grid = new HexCell[total_num_possible_cells];
   HexCell *hex_cell_ptr = hex_cell_grid;
-  for (int i = 0; i < width; ++i) {
-    for (int j = 0; j < height; ++j, ++hex_cell_ptr) {
+  for (int i = 0; i < height; ++i) {
+    for (int j = 0; j < width; ++j, ++hex_cell_ptr) {
       hex_cell_ptr->set_horiz_coord(j);
       hex_cell_ptr->set_diag_coord(i);
     }
@@ -569,6 +569,7 @@ void * HexPopulation::const_fold_in_random_order(
   return data;
 }
 
+#include <iostream>
 void HexPopulation::map_neighbors(function<void (Cell &, Cell &)> proc,
                     Cell &cell,
                     const Clone * filter_neighbor_clone,
