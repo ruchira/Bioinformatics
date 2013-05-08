@@ -179,15 +179,15 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
         cell_cycle_ptr->run();
         write_hex_cell_cycle_run(*coded_output);
       }
-      destroy_population();
-      delete coded_output;
-      delete raw_output;
-      close(fd);
       std::string max_fitness_file_name = output_file_base + ".max";
       std::ofstream maxstrm;
       maxstrm.open(max_fitness_file_name.c_str(), std::ios::out);
       maxstrm << population_ptr->get_max_fitness_ever();
       maxstrm.close();
+      destroy_population();
+      delete coded_output;
+      delete raw_output;
+      close(fd);
       Random::finalize();
 #ifdef USING_MPI
       MPI_Finalize();
