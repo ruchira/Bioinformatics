@@ -88,7 +88,7 @@ bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(CodedInputStream &c
 	bool read_event = false;
 	do {
 		hex_population_event.Clear();
-		read_event = hex_population_event.MergeFromCodedStream(&coded_input);
+		read_event = hex_population_event.ParseFromCodedStream(&coded_input);
 		if (read_event) {
       std::cout << "Read event of type " << hex_population_event.type() <<
       std::endl;
