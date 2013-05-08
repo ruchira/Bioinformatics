@@ -154,6 +154,11 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
     std::string output_file_name 
       = output_file_base + (is_rigid ? ".hxg" : ".flx");
     int fd = open(output_file_name.c_str(), O_WRONLY);
+    if (fd < 0) {
+      std::cout << "Failed to open output file " << output_file_name <<
+      std::endl;
+      return Application::EXIT_IOERR;
+    }
     ZeroCopyOutputStream *raw_output = new FileOutputStream(fd);
     CodedOutputStream* coded_output = new CodedOutputStream(raw_output);
     try {
@@ -166,7 +171,7 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       MPI_Init(NULL, NULL);
 #endif
       Random::initialize(random_seed);
-      int magic_number = 1769;
+      uint32 magic_number = 1729;
       coded_output->WriteLittleEndian32(magic_number);
       create_population();
       create_cell_cycle();

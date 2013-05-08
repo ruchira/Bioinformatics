@@ -134,11 +134,11 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
     int fd = open(input_file_name.c_str(), O_RDONLY);
     ZeroCopyInputStream* raw_input = new FileInputStream(fd);
     CodedInputStream *coded_input = new CodedInputStream(raw_input);
+    hex_replication_record.initialize();
     try {
       uint32 magic_number;
       coded_input->ReadLittleEndian32(&magic_number);
-      if (magic_number != 1769) {
-        std::cerr << input_file_name << " is not in the hxg format." << std::endl;
+      if (magic_number != 1729) {
         delete coded_input;
         delete raw_input;
         close(fd);
@@ -150,7 +150,6 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       int generation;
       for (generation = 0; generation < maximum_time; ++generation) {
 				visualize(generation);
-        readkey();
         if (!read_and_replay_hex_cell_cycle_run(*coded_input)) {
 					break;
 				}
@@ -158,7 +157,6 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       if (generation == maximum_time) {
         visualize(generation);
       }
-      readkey();
       destroy_population();
       delete coded_input;
       delete raw_input;

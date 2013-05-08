@@ -569,7 +569,6 @@ void * HexPopulation::const_fold_in_random_order(
   return data;
 }
 
-#include <iostream>
 void HexPopulation::map_neighbors(function<void (Cell &, Cell &)> proc,
                     Cell &cell,
                     const Clone * filter_neighbor_clone,
