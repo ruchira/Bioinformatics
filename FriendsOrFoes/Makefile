@@ -1,6 +1,6 @@
 CXX = mpicxx
 CXXLD = mpicxx
-CXXFLAGS = -O2 -DUSING_MPI
+CXXFLAGS = -g -DUSING_MPI
 CXXCOMPILE = $(CXX) $(CXXFLAGS)
 CXXLINK = $(CXXLD) $(CXXFLAGS) -o $@
 INCLUDES = -I/usr/include/g++ -I../lib/poco/Util/include -I../include -I../lib/allegro/include -I../lib/allegro/build/include

@@ -206,8 +206,8 @@ HexPopulation::HexPopulation(int width, int height,
   HexCell *hex_cell_ptr = hex_cell_grid;
   for (int i = 0; i < width; ++i) {
     for (int j = 0; j < height; ++j, ++hex_cell_ptr) {
-      hex_cell_ptr->set_horiz_coord(i);
-      hex_cell_ptr->set_diag_coord(j);
+      hex_cell_ptr->set_horiz_coord(j);
+      hex_cell_ptr->set_diag_coord(i);
     }
   }
   global_permutation_size = total_num_possible_cells;

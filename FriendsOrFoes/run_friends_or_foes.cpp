@@ -87,8 +87,6 @@ void *write_replication_to_stream(void *data, const ReplicationRecord &record)
         hex_record_ptr->get_hex_daughter1_ptr()->get_horiz_coord());
   hex_cell_proto1_ptr->set_diag_coord(
         hex_record_ptr->get_hex_daughter1_ptr()->get_diag_coord());
-  std::cout << "Serializing event of type " << pStruct->hex_population_event.type()
-  << std::endl;
   if (pStruct->first) {
     // All replication events have the same size, so we only compute the size
     // the first time through the loop.
@@ -119,8 +117,6 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
           ((const HexCell *)killed_cells->at(j))->get_horiz_coord());
         hex_cell_proto0_ptr->set_diag_coord(
           ((const HexCell *)killed_cells->at(j))->get_diag_coord());
-        std::cout << "Serializing event of type " << hex_population_event.type()
-        << std::endl;
         // All kill events have the same size, so we only compute the size the
         // first time through the loop.
         if (first) {
@@ -140,8 +136,6 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
   hex_population_event.clear_cell1();
   hex_population_event.set_type(HexPopulationEvent::stop);
   byte_size = hex_population_event.ByteSize();
-  std::cout << "Serializing event of type " << hex_population_event.type()
-  << std::endl;
   coded_output.WriteVarint32(byte_size);
   hex_population_event.SerializeWithCachedSizes(&coded_output);
 }

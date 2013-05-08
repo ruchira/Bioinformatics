@@ -95,8 +95,6 @@ bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(CodedInputStream &c
 		read_event = hex_population_event.ParseFromCodedStream(&coded_input);
     coded_input.PopLimit(limit);
 		if (read_event) {
-      std::cout << "Read event of type " << hex_population_event.type() <<
-      std::endl;
 			result = true;
 			if (hex_population_event.type() == HexPopulationEvent::kill) {
 				population_ptr->kill(*get_hex_cell_ptr_of_hex_cell_proto(
