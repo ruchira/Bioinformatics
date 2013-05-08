@@ -153,7 +153,7 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 
     std::string output_file_name 
       = output_file_base + (is_rigid ? ".hxg" : ".flx");
-    int fd = open(output_file_name.c_str(), O_WRONLY);
+    int fd = open(output_file_name.c_str(), O_CREAT|O_WRONLY);
     if (fd < 0) {
       std::cout << "Failed to open output file " << output_file_name <<
       std::endl;
