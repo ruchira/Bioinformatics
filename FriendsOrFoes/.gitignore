@@ -1,6 +1,8 @@
 see_friends_or_foes
 run_friends_or_foes
 *.cnf
+*.bmp
+*.mp4
 *.properties
 *.hxg
 *.max
