@@ -409,6 +409,11 @@ HexPopulation *FriendsOrFoesApp::get_new_hex_population(void) {
   return hex_population_ptr;
 }
 
+void FriendsOrFoesApp::destroy_population(void) {
+  delete population_ptr;
+  population_ptr = NULL;
+}
+
 void FriendsOrFoesApp::create_population(void) {
   if (population_ptr != NULL) {
     delete population_ptr;

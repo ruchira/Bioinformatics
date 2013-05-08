@@ -37,9 +37,14 @@
 #include <fstream>
 #include <string>
 #include "Poco/Util/IntValidator.h"
-
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace friends_or_foes;
+using namespace google::protobuf;
+using namespace google::protobuf::io;
 
 void SeeFriendsOrFoesApp::defineOptions(OptionSet& options) {
   FriendsOrFoesApp::defineOptions(options);
@@ -78,12 +83,12 @@ HexCell *SeeFriendsOrFoesApp::get_hex_cell_ptr_of_hex_cell_proto(
                                                     hex_cell_proto.diag_coord());
 }
 
-bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(std::istream &istrm) {
+bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(CodedInputStream &coded_input) {
 	bool result = false;
 	bool read_event = false;
 	do {
 		hex_population_event.Clear();
-		read_event = hex_population_event.ParseFromIstream(&istrm);
+		read_event = hex_population_event.MergeFromCodedStream(&coded_input);
 		if (read_event) {
       std::cout << "Read event of type " << hex_population_event.type() <<
       std::endl;
@@ -116,15 +121,26 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 	if (!_helpRequested)
 	{
     set_values_from_config_with_defaults();
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::string max_fitness_file_name = output_file_base + ".max";
     std::ifstream max_fitness_strm;
     max_fitness_strm.open(max_fitness_file_name.c_str(), std::ios::in);
     max_fitness_strm >> max_fitness_ever;
     max_fitness_strm.close();
     std::string input_file_name = output_file_base + (is_rigid ? ".hxg" : ".flx");
-    std::ifstream istrm;
-    istrm.open(input_file_name.c_str(), std::ios::in);
+    int fd = open(input_file_name.c_str(), O_RDONLY);
+    ZeroCopyInputStream* raw_input = new FileInputStream(fd);
+    CodedInputStream *coded_input = new CodedInputStream(raw_input);
     try {
+      uint32 magic_number;
+      coded_input->ReadLittleEndian32(&magic_number);
+      if (magic_number != 1769) {
+        std::cerr << input_file_name << " is not in the hxg format." << std::endl;
+        delete coded_input;
+        delete raw_input;
+        close(fd);
+        return 1;
+      }
       allegro_init();
       set_color_depth(8);
       create_population();
@@ -132,7 +148,7 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       for (generation = 0; generation < maximum_time; ++generation) {
 				visualize(generation);
         readkey();
-        if (!read_and_replay_hex_cell_cycle_run(istrm)) {
+        if (!read_and_replay_hex_cell_cycle_run(*coded_input)) {
 					break;
 				}
       }
@@ -140,15 +156,27 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
         visualize(generation);
       }
       readkey();
-			istrm.close();
+      destroy_population();
+      delete coded_input;
+      delete raw_input;
+      close(fd);
+      google::protobuf::ShutdownProtobufLibrary();
     } catch(std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";
-        istrm.close();
+        destroy_population();
+        delete coded_input;
+        delete raw_input;
+        close(fd);
+        google::protobuf::ShutdownProtobufLibrary();
         return 1;
     }
     catch(...) {
         std::cerr << "Exception of unknown type!\n";
-        istrm.close();
+        destroy_population();
+        delete coded_input;
+        delete raw_input;
+        close(fd);
+        google::protobuf::ShutdownProtobufLibrary();
     }
   }
   return Application::EXIT_OK;

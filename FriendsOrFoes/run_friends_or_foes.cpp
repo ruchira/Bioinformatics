@@ -30,13 +30,20 @@
 // DAMAGE.
 #include "run_friends_or_foes.h"
 #include "hex_cell_cycle.h"
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #ifdef USING_MPI
 #include <mpi.h>
 #endif
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace friends_or_foes;
+using namespace google::protobuf;
+using namespace google::protobuf::io;
 
 RunFriendsOrFoesApp::~RunFriendsOrFoesApp() {
   if (cell_cycle_ptr != NULL) {
@@ -52,10 +59,13 @@ void RunFriendsOrFoesApp::create_cell_cycle(void) {
 
 struct DataForWritingReplicationRecord {
   DataForWritingReplicationRecord(HexPopulationEvent &event, 
-                                  std::ostream &strm) :
-    hex_population_event(event), ostrm(strm) {};
+                                  CodedOutputStream &output) :
+      hex_population_event(event), coded_output(output) {
+    first = true;
+  };
   HexPopulationEvent &hex_population_event;
-  std::ostream &ostrm;
+  CodedOutputStream &coded_output;
+  bool first;
 };
 
 void *write_replication_to_stream(void *data, const ReplicationRecord &record)
@@ -78,17 +88,25 @@ void *write_replication_to_stream(void *data, const ReplicationRecord &record)
         hex_record_ptr->get_hex_daughter1_ptr()->get_diag_coord());
   std::cout << "Serializing event of type " << pStruct->hex_population_event.type()
   << std::endl;
-  pStruct->hex_population_event.SerializeToOstream(&pStruct->ostrm);
+  if (pStruct->first) {
+    // All replication events have the same size, so we only compute the size
+    // the first time through the loop.
+    pStruct->hex_population_event.ByteSize();
+    pStruct->first = false;
+  }
+  pStruct->hex_population_event.SerializeWithCachedSizes(&pStruct->coded_output);
   return data;
 }
 
-void RunFriendsOrFoesApp::write_hex_cell_cycle_run(std::ostream &ostrm) {
+void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
+                      CodedOutputStream &coded_output) {
   HexCellProto *hex_cell_proto0_ptr;
   HexPopulationEvent hex_population_event;
   int i, j;
   hex_population_event.Clear();
   hex_population_event.set_type(HexPopulationEvent::kill);
   hex_cell_proto0_ptr = hex_population_event.mutable_cell0();
+  bool first = true;
   for (i = 0; i < num_clones; ++i) {
     const std::vector<const Cell *> *killed_cells 
       = cell_cycle_ptr->get_killed_cells_of_clone(*clone_ptrs[i]);
@@ -100,26 +118,34 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(std::ostream &ostrm) {
           ((const HexCell *)killed_cells->at(j))->get_diag_coord());
         std::cout << "Serializing event of type " << hex_population_event.type()
         << std::endl;
-        hex_population_event.SerializeToOstream(&ostrm);
+        // All kill events have the same size, so we only compute the size the
+        // first time through the loop.
+        if (first) {
+          hex_population_event.ByteSize();
+          first = false;
+        }
+        hex_population_event.SerializeWithCachedSizes(&coded_output);
       }
     }
   }
   hex_population_event.set_type(HexPopulationEvent::replicate);
-  DataForWritingReplicationRecord data(hex_population_event, ostrm);
+  DataForWritingReplicationRecord data(hex_population_event, coded_output);
   cell_cycle_ptr->const_fold_replication_records(write_replication_to_stream, 
                                                   &data);
   hex_population_event.clear_cell0();
   hex_population_event.clear_cell1();
   hex_population_event.set_type(HexPopulationEvent::stop);
+  hex_population_event.ByteSize();
   std::cout << "Serializing event of type " << hex_population_event.type()
   << std::endl;
-  hex_population_event.SerializeToOstream(&ostrm);
+  hex_population_event.SerializeWithCachedSizes(&coded_output);
 }
 
 int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
   if (!_helpRequested)
   {
     set_values_from_config_with_defaults();
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::string output_config = output_file_base + ".properties";
     std::ofstream cnfstrm;
     cnfstrm.open(output_config.c_str(), std::ios::out);
@@ -128,8 +154,9 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
 
     std::string output_file_name 
       = output_file_base + (is_rigid ? ".hxg" : ".flx");
-    std::ofstream ostrm;
-    ostrm.open(output_file_name.c_str(), std::ios::out);
+    int fd = open(output_file_name.c_str(), O_WRONLY);
+    ZeroCopyOutputStream *raw_output = new FileOutputStream(fd);
+    CodedOutputStream* coded_output = new CodedOutputStream(raw_output);
     try {
 #ifdef USING_MPI
       // MPI-2 conformant MPI implementations are required to allow
@@ -140,6 +167,8 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
       MPI_Init(NULL, NULL);
 #endif
       Random::initialize(random_seed);
+      int magic_number = 1769;
+      coded_output->WriteLittleEndian32(magic_number);
       create_population();
       create_cell_cycle();
       int generation;
@@ -148,30 +177,42 @@ int RunFriendsOrFoesApp::main(const std::vector<std::string>& args) {
           break;
         }
         cell_cycle_ptr->run();
-        write_hex_cell_cycle_run(ostrm);
+        write_hex_cell_cycle_run(*coded_output);
       }
-      ostrm.close();
-      Random::finalize();
-#ifdef USING_MPI
-      MPI_Finalize();
-#endif
+      destroy_population();
+      delete coded_output;
+      delete raw_output;
+      close(fd);
       std::string max_fitness_file_name = output_file_base + ".max";
       std::ofstream maxstrm;
       maxstrm.open(max_fitness_file_name.c_str(), std::ios::out);
       maxstrm << population_ptr->get_max_fitness_ever();
       maxstrm.close();
+      Random::finalize();
+#ifdef USING_MPI
+      MPI_Finalize();
+#endif
+      google::protobuf::ShutdownProtobufLibrary();
     } catch(std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";
-        ostrm.close();
+        destroy_population();
+        delete coded_output;
+        delete raw_output;
+        close(fd);
         Random::finalize();
 #ifdef USING_MPI
         MPI_Finalize();
 #endif
+        google::protobuf::ShutdownProtobufLibrary();
         return 1;
     }
     catch(...) {
         std::cerr << "Exception of unknown type!\n";
-        ostrm.close();
+        destroy_population();
+        delete coded_output;
+        delete raw_output;
+        close(fd);
+        google::protobuf::ShutdownProtobufLibrary();
         Random::finalize();
 #ifdef USING_MPI
         MPI_Finalize();

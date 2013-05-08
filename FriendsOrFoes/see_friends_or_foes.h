@@ -34,6 +34,7 @@
 #include "hex_friends_or_foes_history.pb.h"
 #include "hex_cell.h"
 #include "hex_replication_record.h"
+#include <google/protobuf/io/coded_stream.h>
 
 class SeeFriendsOrFoesApp : public FriendsOrFoesApp {
   public:
@@ -44,7 +45,8 @@ class SeeFriendsOrFoesApp : public FriendsOrFoesApp {
 		// This will read HexPopulationEvents from the stream until an event with
 		// the type STOP is encountered.  It returns whether or not it read any
 		// events (including the STOP event).
-		bool read_and_replay_hex_cell_cycle_run(std::istream &istrm);
+		bool read_and_replay_hex_cell_cycle_run(
+      google::protobuf::io::CodedInputStream &coded_input);
 	protected:
 		virtual HexPopulation *get_new_hex_population(void);
 		virtual void visualize(int generation);

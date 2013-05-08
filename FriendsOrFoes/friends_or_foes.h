@@ -84,6 +84,7 @@ protected:
   virtual void set_num_clones(int new_num_clones);
   virtual HexPopulation *get_new_hex_population(void);
   virtual void create_population(void);
+  virtual void destroy_population(void);
   void set_is_rigid(bool rigidity) { is_rigid = rigidity; };
 
   int num_clones;

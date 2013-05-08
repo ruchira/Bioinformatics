@@ -33,6 +33,7 @@
 #include "friends_or_foes.h"
 #include "cell_cycle.h"
 #include "hex_friends_or_foes_history.pb.h"
+#include <google/protobuf/io/coded_stream.h>
 
 class RunFriendsOrFoesApp : public FriendsOrFoesApp {
   public:
@@ -40,7 +41,8 @@ class RunFriendsOrFoesApp : public FriendsOrFoesApp {
     virtual ~RunFriendsOrFoesApp();
     int main(const std::vector<std::string>& args);
     void create_cell_cycle(void);
-    void write_hex_cell_cycle_run(std::ostream &ostrm);
+    void write_hex_cell_cycle_run(
+      google::protobuf::io::CodedOutputStream &coded_output);
   private:
     CellCycle *cell_cycle_ptr;
     friends_or_foes::HexPopulationEvent hex_population_event;
