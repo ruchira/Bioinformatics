@@ -66,6 +66,7 @@ struct DataForWritingReplicationRecord {
   HexPopulationEvent &hex_population_event;
   CodedOutputStream &coded_output;
   bool first;
+  uint32 byte_size;
 };
 
 void *write_replication_to_stream(void *data, const ReplicationRecord &record)
@@ -91,9 +92,10 @@ void *write_replication_to_stream(void *data, const ReplicationRecord &record)
   if (pStruct->first) {
     // All replication events have the same size, so we only compute the size
     // the first time through the loop.
-    pStruct->hex_population_event.ByteSize();
+    pStruct->byte_size = pStruct->hex_population_event.ByteSize();
     pStruct->first = false;
   }
+  pStruct->coded_output.WriteVarint32(pStruct->byte_size);
   pStruct->hex_population_event.SerializeWithCachedSizes(&pStruct->coded_output);
   return data;
 }
@@ -107,6 +109,7 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
   hex_population_event.set_type(HexPopulationEvent::kill);
   hex_cell_proto0_ptr = hex_population_event.mutable_cell0();
   bool first = true;
+  uint32 byte_size;
   for (i = 0; i < num_clones; ++i) {
     const std::vector<const Cell *> *killed_cells 
       = cell_cycle_ptr->get_killed_cells_of_clone(*clone_ptrs[i]);
@@ -121,9 +124,10 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
         // All kill events have the same size, so we only compute the size the
         // first time through the loop.
         if (first) {
-          hex_population_event.ByteSize();
+          byte_size = hex_population_event.ByteSize();
           first = false;
         }
+        coded_output.WriteVarint32(byte_size);
         hex_population_event.SerializeWithCachedSizes(&coded_output);
       }
     }
@@ -135,9 +139,10 @@ void RunFriendsOrFoesApp::write_hex_cell_cycle_run(
   hex_population_event.clear_cell0();
   hex_population_event.clear_cell1();
   hex_population_event.set_type(HexPopulationEvent::stop);
-  hex_population_event.ByteSize();
+  byte_size = hex_population_event.ByteSize();
   std::cout << "Serializing event of type " << hex_population_event.type()
   << std::endl;
+  coded_output.WriteVarint32(byte_size);
   hex_population_event.SerializeWithCachedSizes(&coded_output);
 }
 

@@ -86,9 +86,14 @@ HexCell *SeeFriendsOrFoesApp::get_hex_cell_ptr_of_hex_cell_proto(
 bool SeeFriendsOrFoesApp::read_and_replay_hex_cell_cycle_run(CodedInputStream &coded_input) {
 	bool result = false;
 	bool read_event = false;
+  uint32 byte_size;
+  CodedInputStream::Limit limit;
 	do {
 		hex_population_event.Clear();
+    coded_input.ReadVarint32(&byte_size);
+    limit = coded_input.PushLimit(byte_size);
 		read_event = hex_population_event.ParseFromCodedStream(&coded_input);
+    coded_input.PopLimit(limit);
 		if (read_event) {
       std::cout << "Read event of type " << hex_population_event.type() <<
       std::endl;
