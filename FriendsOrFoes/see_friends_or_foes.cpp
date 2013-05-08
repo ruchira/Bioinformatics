@@ -130,7 +130,8 @@ int SeeFriendsOrFoesApp::main(const std::vector<std::string>& args) {
     max_fitness_strm.open(max_fitness_file_name.c_str(), std::ios::in);
     max_fitness_strm >> max_fitness_ever;
     max_fitness_strm.close();
-    std::string input_file_name = output_file_base + (is_rigid ? ".hxg" : ".flx");
+    std::string input_file_name 
+      = output_file_base + (is_rigid ? ".hxg" : ".flx");
     int fd = open(input_file_name.c_str(), O_RDONLY);
     ZeroCopyInputStream* raw_input = new FileInputStream(fd);
     CodedInputStream *coded_input = new CodedInputStream(raw_input);

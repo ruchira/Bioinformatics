@@ -128,9 +128,9 @@ void VisualizeHexPopulation::initialize_colors(int num_clones) {
     rgb.r = 0;
     rgb.g = 0;
     rgb.b = 0;
-    hsv_to_rgb(distinct_hue_degrees[hue_num - 1], 1.0, value_increment,
+    hsv_to_rgb(distinct_hue_degrees[hue_num], 1.0, value_increment,
                 &r, &g, &b);
-    for (level = 0; level < num_levels; ++level) {
+    for (level = 1; level < num_levels; ++level) {
       rgb.r += r;
       rgb.g += g;
       rgb.b += b;
