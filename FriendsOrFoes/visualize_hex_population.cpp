@@ -81,17 +81,17 @@ VisualizeHexPopulation::VisualizeHexPopulation(int width, int height,
                                    get_initial_width(), get_initial_height()-1)
                           + 2 * hexagon_rendering.get_side();
 
-  frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
-  int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 320, 240,
+  int status = set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480,
                             frame_width_in_pixels, frame_height_in_pixels);
   status = install_keyboard();
   // Fill with black
   clear_bitmap(screen);
-  clear_bitmap(frame);
   for (int clone_index = 0; clone_index < clone_ptrs.size(); ++clone_index) {
     index_of_clone[clone_ptrs[clone_index]] = clone_index;
   }
   initialize_colors(clone_ptrs.size());
+  frame = create_bitmap(frame_width_in_pixels, frame_height_in_pixels);
+  clear_bitmap(frame);
   hexagon_rendering.initialize();
 }
 
@@ -101,7 +101,6 @@ VisualizeHexPopulation::~VisualizeHexPopulation() {
 
 void VisualizeHexPopulation::initialize_colors(int num_clones) {
   assert(num_clones <= 10);
-  PALETTE palette;
 
   // The last entry in the palette is black, to represent a dead cell.  
   palette[HexagonRendering::black].r = 0;

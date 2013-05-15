@@ -46,12 +46,26 @@ class VisualizeHexPopulation : public HexPopulation {
 		virtual ~VisualizeHexPopulation();
     // This will write the current frame to the named output file.
 		void visualize(const char *output_filename) {
-      draw_sprite(screen, frame, 0, 0);
-      PALETTE palette;
-      get_palette(palette);
+      PALETTE pal;
+      get_palette(pal);
+#ifdef DEBUG
+      for (int row = 0; row < frame->h; ++row) {
+       unsigned char *char_ptr = frame->line[row];
+       for (int col = 0; col < frame->w; ++col) {
+         std::cout << ((*char_ptr == 0) ? '_' : ((*char_ptr == 1) ? 'o': 'x'));
+         ++char_ptr;
+       }
+       std::cout << std::endl;
+      }
+      std::cout << "pal[1]: r " << (int)pal[1].r << " g " <<
+      (int)pal[1].g << " b " << (int)pal[1].b << std::endl;
+      std::cout << "pal[2]: r " << (int)pal[2].r << " g " <<
+      (int)pal[2].g << " b " << (int)pal[2].b << std::endl;
+#endif
       acquire_bitmap(frame);
-      save_bmp(output_filename, frame, palette);
+      int status = save_bitmap(output_filename, frame, pal);
       release_bitmap(frame);
+      draw_sprite(screen, frame, 0, 0);
     };
     virtual void envivify(void);
     virtual void kill(Cell &cell) { 
@@ -83,6 +97,7 @@ class VisualizeHexPopulation : public HexPopulation {
             * hexagon_rendering.get_vertical_component_of_diagonal_offset();
     }
 	private:
+    PALETTE palette;
     int num_values;
     std::map<Clone *, int> index_of_clone;
     float fitness_increment;
