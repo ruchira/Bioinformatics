@@ -30,6 +30,7 @@
 // DAMAGE.
 #include "visualize_hex_population.h"
 #include "distinct_hues.h"
+#include "hsv_to_rgb.h"
 #include <math.h>
 #include <cassert>
 
@@ -114,36 +115,35 @@ void VisualizeHexPopulation::initialize_colors(int num_clones) {
   palette[0].g = 0;
   palette[0].b = 0;
   int current_palette_index;
-  int r, g, b;
   // Leaving out the mask color 0 and the last color black, there are PAL_SIZE
   // colors in the palette; these are partitioned among the hues.  We've
   // already put the maximum level, with value = 1.0, in the palette.
-  int num_levels = (PAL_SIZE - 2) / num_clones - 1;
+  int num_levels = std::min(63, (PAL_SIZE - 2) / num_clones - 1);
   float value_increment = 1.0 / num_levels;
   int level;
-  RGB rgb;
+  RGB rgb, rgb_increment;
   current_palette_index = num_clones + 1;
   for (int hue_num = 0; hue_num < num_clones; ++hue_num) {
     rgb.r = 0;
     rgb.g = 0;
     rgb.b = 0;
     hsv_to_rgb(distinct_hue_degrees[hue_num], 1.0, value_increment,
-                &r, &g, &b);
+                rgb_increment);
     for (level = 1; level < num_levels; ++level) {
-      rgb.r += r;
-      rgb.g += g;
-      rgb.b += b;
+      rgb.r += rgb_increment.r;
+      rgb.g += rgb_increment.g;
+      rgb.b += rgb_increment.b;
       palette[current_palette_index].r = rgb.r;
       palette[current_palette_index].g = rgb.g;
       palette[current_palette_index].b = rgb.b;
       ++current_palette_index;
     }
-    rgb.r += r;
-    rgb.g += g;
-    rgb.b += b;
-    palette[hue_num+1].r = rgb.r;
-    palette[hue_num+1].g = rgb.g;
-    palette[hue_num+1].b = rgb.b;
+    rgb.r += rgb_increment.r;
+    rgb.g += rgb_increment.g;
+    rgb.b += rgb_increment.b;
+    palette[hue_num+1].r = std::min(63, (int)rgb.r);
+    palette[hue_num+1].g = std::min(63, (int)rgb.g);
+    palette[hue_num+1].b = std::min(63, (int)rgb.b);
   }
   for (; current_palette_index < PAL_SIZE - 1; ++current_palette_index) {
     palette[current_palette_index].r = 0;

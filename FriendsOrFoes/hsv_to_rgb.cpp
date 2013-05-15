@@ -82,7 +82,8 @@ void hsv_to_rgb(int hue_in_degrees, float saturation, float value,
   red += m;
   green += m;
   blue += m;
-  rgb.r = floor(red * 255 + 0.5);
-  rgb.g = floor(green * 255 + 0.5);
-  rgb.b = floor(blue * 255 + 0.5);
+  // Ensure the result fits within 6-bits.
+  rgb.r = floor(red * 62 + 0.5);
+  rgb.g = floor(green * 62 + 0.5);
+  rgb.b = floor(blue * 62 + 0.5);
 }
