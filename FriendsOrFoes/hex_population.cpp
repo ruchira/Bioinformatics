@@ -108,10 +108,19 @@ void HexPopulation::envivify(void) {
 
 void *HexPopulation::check_for_space_to_replicate(Cell &cell) {
   HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_dead_neighbors = fill_neighbor_buffer(*hex_cell_ptr, true);
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
+  int num_dead_neighbors = 0;
+  int dead_neighbors[6];
+  for (int i = 1; i <= num_neighbors; ++i) {
+    const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+    if (!neighbor.is_alive()) {
+      dead_neighbors[num_dead_neighbors] = i;
+      ++num_dead_neighbors;
+    }
+  }
   if (num_dead_neighbors > 0) {
-    return neighbor_buffer[
-                Random::rand_int_between_inclusive(1, num_dead_neighbors) - 1];
+    return &(hex_cell_ptr->get_non_null_neighbor(dead_neighbors[
+              Random::rand_int_between_inclusive(1, num_dead_neighbors) - 1]));
   }
   return NULL;
 }
@@ -209,6 +218,63 @@ HexPopulation::HexPopulation(int width, int height,
       hex_cell_ptr->set_horiz_coord(j);
       hex_cell_ptr->set_diag_coord(i);
     }
+  }
+  /* There are six possible neighbors of each cell:
+   5---4        ^ increasing row
+   /\ /\       /
+  6--o--3     /
+   \/ \/     /
+   1---2     ----> increasing column
+  The horizontal dimension wraps around, the diagonal dimension doesn't, thus 
+  making the grid topologically a tube like the esophagus
+  */
+  clear_neighbor_buffer();
+  // Cells on the bottom row (diag_coord i = 0) each have 4 non null neighbors
+  // 3, 4, 5, and 6.
+  hex_cell_ptr = hex_cell_grid;
+  for (int j = 0; j < width; ++j, ++hex_cell_ptr) {
+    hex_cell_ptr->num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+    hex_cell_ptr->non_null_neighbor 
+      = (HexCell **)malloc(hex_cell_ptr->num_neighbors * sizeof(HexCell *));
+    for (int k = 0; k < hex_cell_ptr->num_neighbors; ++k) {
+      hex_cell_ptr->non_null_neighbor[k] = neighbor_buffer[k];
+    }
+    // This cell does not have a neighbor 1.
+    hex_cell_ptr->neighbor[0] = NULL;
+    // This cell does not have a neighbor 2.
+    hex_cell_ptr->neighbor[1] = NULL;
+    hex_cell_ptr->neighbor[2] = neighbor_buffer[0];
+    hex_cell_ptr->neighbor[3] = neighbor_buffer[1];
+    hex_cell_ptr->neighbor[4] = neighbor_buffer[2];
+    hex_cell_ptr->neighbor[5] = neighbor_buffer[3];
+  }
+  // Cells in the interior rows (diag_coord i = 1 to height - 2 inclusive) each
+  // have all 6 non null neighbors.
+  for (int i = 1; i < height - 1; ++i) {
+    for (int j = 0; j < width; ++j, ++hex_cell_ptr) {
+      hex_cell_ptr->num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+      hex_cell_ptr->non_null_neighbor = NULL;
+      for (int k = 0; k < hex_cell_ptr->num_neighbors; ++k) {
+        hex_cell_ptr->neighbor[k] = neighbor_buffer[k];
+      }
+    }
+  }
+  // Cells on the top row (diag_coord i = height - 1) each have 4 non null
+  // neighbors 1, 2, 3, and 6.
+  for (int j = 0; j < width; ++j, ++hex_cell_ptr) {
+    hex_cell_ptr->num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+    hex_cell_ptr->non_null_neighbor 
+      = (HexCell **)malloc(hex_cell_ptr->num_neighbors * sizeof(HexCell *));
+    for (int k = 0; k < hex_cell_ptr->num_neighbors; ++k) {
+      hex_cell_ptr->non_null_neighbor[k] = neighbor_buffer[k];
+    }
+    hex_cell_ptr->neighbor[0] = neighbor_buffer[0];
+    hex_cell_ptr->neighbor[1] = neighbor_buffer[1];
+    hex_cell_ptr->neighbor[2] = neighbor_buffer[2];
+    // This cell does not have a neighbor 4;
+    hex_cell_ptr->neighbor[3] = NULL;
+    hex_cell_ptr->neighbor[4] = NULL;
+    hex_cell_ptr->neighbor[5] = neighbor_buffer[3];
   }
   global_permutation_size = total_num_possible_cells;
   neighbor_permutation_ptr = gsl_permutation_alloc(neighbor_permutation_size);
@@ -574,31 +640,30 @@ void HexPopulation::map_neighbors(function<void (Cell &, Cell &)> proc,
                     const Clone * filter_neighbor_clone,
                     bool negate_filter) {
   HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   int i;
-  HexCell **neighbor_ptrptr;
   if (filter_neighbor_clone == NULL) {
-    for (i = 0, neighbor_ptrptr = neighbor_buffer; i < num_neighbors;
-        ++i, ++neighbor_ptrptr) {
-      if ((*neighbor_ptrptr)->is_alive()) {
-        proc(cell, **neighbor_ptrptr);
+    for (i = 1; i <= num_neighbors; ++i) {
+      HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+      if (neighbor.is_alive()) {
+        proc(cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
-      for (i = 0, neighbor_ptrptr = neighbor_buffer; i < num_neighbors;
-          ++i, ++neighbor_ptrptr) {
-        if ((*neighbor_ptrptr)->is_alive() && 
-            (*neighbor_ptrptr)->get_clone_ptr() != filter_neighbor_clone) {
-          proc(cell, **neighbor_ptrptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     } else {
-      for (i = 0, neighbor_ptrptr = neighbor_buffer; i < num_neighbors;
-          ++i, ++neighbor_ptrptr) {
-        if ((*neighbor_ptrptr)->is_alive() && 
-            (*neighbor_ptrptr)->get_clone_ptr() == filter_neighbor_clone) {
-          proc(cell, **neighbor_ptrptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     }
@@ -611,10 +676,9 @@ void HexPopulation::map_neighbors_in_random_order(
                     const Clone * filter_neighbor_clone,
                     bool negate_filter) {
   HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   gsl_permutation *permutation_ptr;
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
+  if (num_neighbors == 4) {
     permutation_ptr = edge_neighbor_permutation_ptr;
     edge_neighbor_reshuffle();
   } else {
@@ -624,8 +688,8 @@ void HexPopulation::map_neighbors_in_random_order(
   int i;
   if (filter_neighbor_clone == NULL) {
     for (i = 0; i < num_neighbors; ++i) {
-      HexCell &neighbor 
-        = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+      HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
       if (neighbor.is_alive()) {
         proc(cell, neighbor);
       }
@@ -633,8 +697,8 @@ void HexPopulation::map_neighbors_in_random_order(
   } else {
     if (negate_filter) {
       for (i = 0; i < num_neighbors; ++i) {
-        HexCell &neighbor 
-          = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
         if (neighbor.is_alive() && 
             neighbor.get_clone_ptr() != filter_neighbor_clone) {
           proc(cell, neighbor);
@@ -642,8 +706,8 @@ void HexPopulation::map_neighbors_in_random_order(
       }
     } else {
       for (i = 0; i < num_neighbors; ++i) {
-        HexCell &neighbor 
-          = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
         if (neighbor.is_alive() && 
             neighbor.get_clone_ptr() == filter_neighbor_clone) {
           proc(cell, neighbor);
@@ -659,34 +723,30 @@ void HexPopulation::const_map_neighbors(
               const Clone * filter_neighbor_clone,
               bool negate_filter) const {
   const HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = 6;
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
-    num_neighbors = 4;
-  }
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   int i;
   if (filter_neighbor_clone == NULL) {
-    for (i = 0; i < num_neighbors; ++i) {
-      const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-      if (neighbor_ptr->is_alive()) {
-        proc(cell, *neighbor_ptr);
+    for (i = 1; i <= num_neighbors; ++i) {
+      const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+      if (neighbor.is_alive()) {
+        proc(cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
-      for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() != filter_neighbor_clone) {
-          proc(cell, *neighbor_ptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     } else {
-      for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() == filter_neighbor_clone) {
-          proc(cell, *neighbor_ptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     }
@@ -699,14 +759,8 @@ void HexPopulation::const_map_neighbors_in_random_order(
               const Clone * filter_neighbor_clone,
               bool negate_filter) const {
   const HexCell *hex_cell_ptr = (const HexCell *)(&cell);
-  int num_neighbors = 0;
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   int permuted_neighbor_indices[6];
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
-    num_neighbors = 4;
-  } else {
-    num_neighbors = 6;
-  }
   int i, j;
   // Use the inside-out algorithm to get a an unbiased random permutation of
   // the neighbors.
@@ -718,29 +772,29 @@ void HexPopulation::const_map_neighbors_in_random_order(
   }
   if (filter_neighbor_clone == NULL) {
     for (i = 0; i < num_neighbors; ++i) {
-      const HexCell *neighbor_ptr
-        = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-      if (neighbor_ptr->is_alive()) {
-        proc(cell, *neighbor_ptr);
+      const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+      if (neighbor.is_alive()) {
+        proc(cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
       for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr
-          = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() != filter_neighbor_clone) {
-          proc(cell, *neighbor_ptr);
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     } else {
       for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr
-          = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() == filter_neighbor_clone) {
-          proc(cell, *neighbor_ptr);
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          proc(cell, neighbor);
         }
       }
     }
@@ -753,36 +807,32 @@ void * HexPopulation::fold_neighbors(
                     void * initial_value_ptr, 
                     const Clone * filter_neighbor_clone,
                     bool negate_filter) {
-  int i;
   HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   void *data = initial_value_ptr;
-  HexCell **neighbor_ptrptr;
+  int i;
   if (filter_neighbor_clone == NULL) {
-    for (i = 0, neighbor_ptrptr = neighbor_buffer; 
-        i < num_neighbors;
-        ++i, ++neighbor_ptrptr) {
-      if ((*neighbor_ptrptr)->is_alive()) {
-        data = func(data, cell, **neighbor_ptrptr);
+    for (i = 1; i <= num_neighbors; ++i) {
+      HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+      if (neighbor.is_alive()) {
+        data = func(data, cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
-      for (i = 0, neighbor_ptrptr = neighbor_buffer; 
-          i < num_neighbors;
-          ++i, ++neighbor_ptrptr) {
-        if ((*neighbor_ptrptr)->is_alive() && 
-            (*neighbor_ptrptr)->get_clone_ptr() != filter_neighbor_clone) {
-          data = func(data, cell, **neighbor_ptrptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     } else {
-      for (i = 0, neighbor_ptrptr = neighbor_buffer; 
-          i < num_neighbors;
-          ++i, ++neighbor_ptrptr) {
-        if ((*neighbor_ptrptr)->is_alive() && 
-            (*neighbor_ptrptr)->get_clone_ptr() == filter_neighbor_clone) {
-          data = func(data, cell, **neighbor_ptrptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     }
@@ -796,23 +846,22 @@ void * HexPopulation::fold_neighbors_in_random_order(
                     void * initial_value_ptr, 
                     const Clone * filter_neighbor_clone,
                     bool negate_filter) {
+  void *data = initial_value_ptr;
   HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = fill_neighbor_buffer(*hex_cell_ptr);
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   gsl_permutation *permutation_ptr;
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
+  if (num_neighbors == 4) {
     permutation_ptr = edge_neighbor_permutation_ptr;
     edge_neighbor_reshuffle();
   } else {
     permutation_ptr = neighbor_permutation_ptr;
     neighbor_reshuffle();
   }
-  void *data = initial_value_ptr;
   int i;
   if (filter_neighbor_clone == NULL) {
     for (i = 0; i < num_neighbors; ++i) {
-      HexCell &neighbor
-        = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+      HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
       if (neighbor.is_alive()) {
         data = func(data, cell, neighbor);
       }
@@ -820,8 +869,8 @@ void * HexPopulation::fold_neighbors_in_random_order(
   } else {
     if (negate_filter) {
       for (i = 0; i < num_neighbors; ++i) {
-        HexCell &neighbor
-          = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
         if (neighbor.is_alive() && 
             neighbor.get_clone_ptr() != filter_neighbor_clone) {
           data = func(data, cell, neighbor);
@@ -829,8 +878,8 @@ void * HexPopulation::fold_neighbors_in_random_order(
       }
     } else {
       for (i = 0; i < num_neighbors; ++i) {
-        HexCell &neighbor
-          = *neighbor_buffer[gsl_permutation_get(permutation_ptr, i)];
+        HexCell &neighbor = hex_cell_ptr->get_non_null_neighbor(
+                                  gsl_permutation_get(permutation_ptr, i) + 1);
         if (neighbor.is_alive() && 
             neighbor.get_clone_ptr() == filter_neighbor_clone) {
           data = func(data, cell, neighbor);
@@ -848,35 +897,31 @@ void * HexPopulation::const_fold_neighbors(
         const Clone * filter_neighbor_clone,
         bool negate_filter) const {
   const HexCell *hex_cell_ptr = (HexCell *)(&cell);
-  int num_neighbors = 6;
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
-    num_neighbors = 4;
-  }
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   void *data = initial_value_ptr;
   int i;
   if (filter_neighbor_clone == NULL) {
-    for (i = 0; i < num_neighbors; ++i) {
-      const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-      if (neighbor_ptr->is_alive()) {
-        data = func(data, cell, *neighbor_ptr);
+    for (i = 1; i <= num_neighbors; ++i) {
+      const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+      if (neighbor.is_alive()) {
+        data = func(data, cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
-      for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() != filter_neighbor_clone) {
-          data = func(data, cell, *neighbor_ptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     } else {
-      for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr = const_get_neighbor(*hex_cell_ptr, i);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() == filter_neighbor_clone) {
-          data = func(data, cell, *neighbor_ptr);
+      for (i = 1; i <= num_neighbors; ++i) {
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(i);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     }
@@ -892,14 +937,8 @@ void * HexPopulation::const_fold_neighbors_in_random_order(
         bool negate_filter) const {
   void *data = initial_value_ptr;
   const HexCell *hex_cell_ptr = (const HexCell *)(&cell);
-  int num_neighbors = 0;
+  int num_neighbors = hex_cell_ptr->get_num_neighbors();
   int permuted_neighbor_indices[6];
-  if (hex_cell_ptr->get_diag_coord() == 0 
-      || hex_cell_ptr->get_diag_coord() == get_initial_height() - 1) {
-    num_neighbors = 4;
-  } else {
-    num_neighbors = 6;
-  }
   int i, j;
   // Use the inside-out algorithm to get a an unbiased random permutation of
   // the neighbors.
@@ -911,29 +950,29 @@ void * HexPopulation::const_fold_neighbors_in_random_order(
   }
   if (filter_neighbor_clone == NULL) {
     for (i = 0; i < num_neighbors; ++i) {
-      const HexCell *neighbor_ptr
-        = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-      if (neighbor_ptr->is_alive()) {
-        data = func(data, cell, *neighbor_ptr);
+      const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+      if (neighbor.is_alive()) {
+        data = func(data, cell, neighbor);
       }
     }
   } else {
     if (negate_filter) {
       for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr
-          = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() != filter_neighbor_clone) {
-          data = func(data, cell, *neighbor_ptr);
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() != filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     } else {
       for (i = 0; i < num_neighbors; ++i) {
-        const HexCell *neighbor_ptr
-          = const_get_neighbor(*hex_cell_ptr, permuted_neighbor_indices[i]);
-        if (neighbor_ptr->is_alive() && 
-            neighbor_ptr->get_clone_ptr() == filter_neighbor_clone) {
-          data = func(data, cell, *neighbor_ptr);
+        const HexCell &neighbor = hex_cell_ptr->const_get_non_null_neighbor(
+                                            permuted_neighbor_indices[i] + 1);
+        if (neighbor.is_alive() && 
+            neighbor.get_clone_ptr() == filter_neighbor_clone) {
+          data = func(data, cell, neighbor);
         }
       }
     }
@@ -956,96 +995,8 @@ void HexPopulation::clear_neighbor_buffer() {
 The horizontal dimension wraps around, the diagonal dimension doesn't, thus 
 making the grid topologically a tube like the esophagus
 */
-HexCell *HexPopulation::get_neighbor(HexCell &cell, int i) {
-  HexCell *cell_ptr = &cell;
-  switch(i) {
-    case 1:
-      if (cell.get_diag_coord() > 0) {
-        // Go down to the previous row (i.e., back a whole row of cells in the
-        // memory block).
-        cell_ptr -= get_initial_width();
-        return cell_ptr;
-      } else {
-        // This cell is at the bottom edge and has no neighbor 1
-        return NULL;
-      }
-      break;
-    case 2:
-      if (cell.get_diag_coord() > 0) {
-        // Go down to the previous row (i.e., back a whole row of cells in the
-        // memory block).
-        cell_ptr -= get_initial_width();
-        // Go right by one (diagonal) column.
-        if (cell.get_horiz_coord() == get_initial_width() - 1) {
-          // Since we are at (diagonal) column (get_initial_width() - 1), to go
-          // right by one column is the same as to go left by
-          // (get_initial_width() - 1) columns.
-          cell_ptr -= (get_initial_width() - 1);
-        } else {
-          ++cell_ptr; 
-        }
-        return cell_ptr;
-      } else {
-        // This cell is at the bottom edge and has no neighbor 1
-        return NULL;
-      }
-      break;
-    case 3:
-      // Go right by one (diagonal) column.
-      if (cell.get_horiz_coord() == get_initial_width() - 1) {
-        // Since we are at (diagonal) column (get_initial_width() - 1), to go
-        // right by one column is the same as to go left by
-        // (get_initial_width() - 1) columns.
-        cell_ptr -= (get_initial_width() - 1);
-      } else {
-        ++cell_ptr;
-      }
-      return cell_ptr;
-      break;
-    case 4:
-      if (cell.get_diag_coord() < get_initial_height() - 1) {
-        // Go up to the next row (i.e. forward a whole row of cells in the
-        // memory block.
-        cell_ptr += get_initial_width();
-        return cell_ptr;
-      } else {
-        // This cell is at the top edge and has no neighbor 4
-        return NULL;
-      }
-      break;
-    case 5:
-      if (cell.get_diag_coord() < get_initial_height() - 1) {
-        // Go up to the next row (i.e. forward a whole row of cells in the
-        // memory block.
-        cell_ptr += get_initial_width();
-        // Go left by one (diagonal) column.
-        if (cell.get_horiz_coord() == 0) {
-          // Since we are at (diagonal) column 0, to go left by one column is
-          // the same as to go right by (get_initial_width() - 1) columns.
-          cell_ptr += (get_initial_width() - 1);
-        } else {
-          --cell_ptr;
-        }
-        return cell_ptr;
-      } else {
-        // This cell is at the top edge and has no neighbor 4
-        return NULL;
-      }
-      break;
-    case 6:
-      // Go left by one (diagonal) column.
-      if (cell.get_horiz_coord() == 0) {
-        // Since we are at (diagonal) column 0, to go left by one column is
-        // the same as to go right by (get_initial_width() - 1) columns.
-        cell_ptr += (get_initial_width() - 1);
-      } else {
-        --cell_ptr;
-      }
-      return cell_ptr;
-      break;
-    default:
-      return NULL;
-  };
+HexCell *HexPopulation::get_neighborptr(HexCell &cell, int i) {
+  return cell.get_neighborptr(i);
 }
 
 /* There are six possible neighbors of each cell:
@@ -1057,97 +1008,9 @@ HexCell *HexPopulation::get_neighbor(HexCell &cell, int i) {
 The horizontal dimension wraps around, the diagonal dimension doesn't, thus 
 making the grid topologically a tube like the esophagus
 */
-const HexCell *HexPopulation::const_get_neighbor(const HexCell &cell, 
+const HexCell *HexPopulation::const_get_neighborptr(const HexCell &cell, 
                                                   int i) const {
-  const HexCell *cell_ptr = &cell;
-  switch(i) {
-    case 1:
-      if (cell.get_diag_coord() > 0) {
-        // Go down to the previous row (i.e., back a whole row of cells in the
-        // memory block).
-        cell_ptr -= get_initial_width();
-        return cell_ptr;
-      } else {
-        // This cell is at the bottom edge and has no neighbor 1
-        return NULL;
-      }
-      break;
-    case 2:
-      if (cell.get_diag_coord() > 0) {
-        // Go down to the previous row (i.e., back a whole row of cells in the
-        // memory block).
-        cell_ptr -= get_initial_width();
-        // Go right by one (diagonal) column.
-        if (cell.get_horiz_coord() == get_initial_width() - 1) {
-          // Since we are at (diagonal) column (get_initial_width() - 1), to go
-          // right by one column is the same as to go left by
-          // (get_initial_width() - 1) columns.
-          cell_ptr -= (get_initial_width() - 1);
-        } else {
-          ++cell_ptr; 
-        }
-        return cell_ptr;
-      } else {
-        // This cell is at the bottom edge and has no neighbor 1
-        return NULL;
-      }
-      break;
-    case 3:
-      // Go right by one (diagonal) column.
-      if (cell.get_horiz_coord() == get_initial_width() - 1) {
-        // Since we are at (diagonal) column (get_initial_width() - 1), to go
-        // right by one column is the same as to go left by
-        // (get_initial_width() - 1) columns.
-        cell_ptr -= (get_initial_width() - 1);
-      } else {
-        ++cell_ptr;
-      }
-      return cell_ptr;
-      break;
-    case 4:
-      if (cell.get_diag_coord() < get_initial_height() - 1) {
-        // Go up to the next row (i.e. forward a whole row of cells in the
-        // memory block.
-        cell_ptr += get_initial_width();
-        return cell_ptr;
-      } else {
-        // This cell is at the top edge and has no neighbor 4
-        return NULL;
-      }
-      break;
-    case 5:
-      if (cell.get_diag_coord() < get_initial_height() - 1) {
-        // Go up to the next row (i.e. forward a whole row of cells in the
-        // memory block.
-        cell_ptr += get_initial_width();
-        // Go left by one (diagonal) column.
-        if (cell.get_horiz_coord() == 0) {
-          // Since we are at (diagonal) column 0, to go left by one column is
-          // the same as to go right by (get_initial_width() - 1) columns.
-          cell_ptr += (get_initial_width() - 1);
-        } else {
-          --cell_ptr;
-        }
-        return cell_ptr;
-      } else {
-        // This cell is at the top edge and has no neighbor 4
-        return NULL;
-      }
-      break;
-    case 6:
-      // Go left by one (diagonal) column.
-      if (cell.get_horiz_coord() == 0) {
-        // Since we are at (diagonal) column 0, to go left by one column is
-        // the same as to go right by (get_initial_width() - 1) columns.
-        cell_ptr += (get_initial_width() - 1);
-      } else {
-        --cell_ptr;
-      }
-      return cell_ptr;
-      break;
-    default:
-      return NULL;
-  };
+  return cell.const_get_neighborptr(i);
 }
 
 /* There are six possible neighbors of each cell:

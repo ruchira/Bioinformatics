@@ -151,8 +151,8 @@ class HexPopulation : public Population {
     // (either because i is not a number from 1 to 6, or because the cell is at
     // the top or bottom edge of the grid and doesn't have a neighbor in that
     // direction).
-    HexCell* get_neighbor(HexCell &cell, int i);
-    const HexCell* const_get_neighbor(const HexCell &cell, int i) const;
+    HexCell* get_neighborptr(HexCell &cell, int i);
+    const HexCell* const_get_neighborptr(const HexCell &cell, int i) const;
 
     // This returns 0.0 if the cells are not neighbors.
     virtual float get_size_of_interface_between_cells(
