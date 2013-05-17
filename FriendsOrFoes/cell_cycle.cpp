@@ -30,6 +30,18 @@
 // DAMAGE.
 #include "cell_cycle.h"
 
+void CellCycle::kill(Cell &cell) {
+  std::map<const Clone *, std::vector<const Cell *> * >::const_iterator iter;
+  iter = killed_cells_of_clone.find(cell.get_clone_ptr());
+  if (iter == killed_cells_of_clone.end()) {
+    killed_cells_of_clone[cell.get_clone_ptr()] 
+      = new std::vector<const Cell *>;
+  }
+  killed_cells_of_clone[cell.get_clone_ptr()]->push_back(&cell);
+  population.kill(cell);
+  ++total_num_killed_cells;
+}
+
 void CellCycle::try_survival(Cell &cell) {
   if (cell.is_alive()) {
     double survival_probability;
@@ -41,15 +53,7 @@ void CellCycle::try_survival(Cell &cell) {
     }
     if (survival_probability == 0.0 
         || !Random::bernoulli_check(survival_probability)) {
-      std::map<const Clone *, std::vector<const Cell *> * >::const_iterator iter;
-      iter = killed_cells_of_clone.find(cell.get_clone_ptr());
-      if (iter == killed_cells_of_clone.end()) {
-        killed_cells_of_clone[cell.get_clone_ptr()] 
-          = new std::vector<const Cell *>;
-      }
-      killed_cells_of_clone[cell.get_clone_ptr()]->push_back(&cell);
-      population.kill(cell);
-      ++total_num_killed_cells;
+      kill(cell);
     }
   }
 }
@@ -58,6 +62,51 @@ void *try_survival_func(void *data, Cell &cell) {
   CellCycle *cell_cycle_ptr = (CellCycle *)data;
   cell_cycle_ptr->try_survival(cell);
   return data;
+}
+
+void CellCycle::global_try_survival(void) {
+  const std::set<float>& survival_probabilities 
+    = population.get_survival_probabilities();
+  std::set<float>::const_iterator prob_iter;
+  std::set<int>::const_iterator index_iter;
+  int n, i, j;
+  unsigned int num_surviving_cells, num_cells_to_kill;
+  for (prob_iter = survival_probabilities.begin(); 
+        prob_iter != survival_probabilities.end(); ++prob_iter) {
+    if (*prob_iter < 1.0) {
+      n = population.get_num_cells_of_survival_probability(*prob_iter);
+      if (n > 0) {
+        // Do a binomial check to see how many of these cells survive.
+        num_surviving_cells = Random::binomial_check(*prob_iter, n);
+        if (num_surviving_cells < n) {
+          if (num_surviving_cells == 0) {
+            for (i = 0; i < n; ++i) {
+              kill(population.get_cell_of_survival_probability(*prob_iter, i));
+            }
+          } else {
+            num_cells_to_kill = n - num_surviving_cells;
+            indices_of_cells_to_kill.clear();
+            // Use Floyd's algorithm to pick a uniform random subset of size
+            // num_cells_to_kill of the cells with this survival probability.
+            for (i = n - num_cells_to_kill; i < n; ++i) {
+              j = Random::rand_int_between_inclusive(0, i);
+              index_iter = indices_of_cells_to_kill.find(j);
+              if (index_iter == indices_of_cells_to_kill.end()) {
+                indices_of_cells_to_kill.insert(j);
+              } else {
+                indices_of_cells_to_kill.insert(i);
+              }
+            }
+            for (index_iter = indices_of_cells_to_kill.begin();
+                  index_iter != indices_of_cells_to_kill.end(); ++index_iter) {
+              kill(population.get_cell_of_survival_probability(*prob_iter,
+                                                              *index_iter));
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 void CellCycle::try_reproduction(Cell &cell) {
@@ -93,7 +142,7 @@ void CellCycle::run(void) {
   // We update the fitness on all the cells before checking survival, so that
   // the aliveness check will refer consistently to the previous run.
   population.update_all_fitnesses();
-  population.fold(try_survival_func, this);
+  global_try_survival();
   global_try_reproduction();
 }
 

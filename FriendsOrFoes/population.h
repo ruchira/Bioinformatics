@@ -31,6 +31,9 @@
 #ifndef POPULATION_H
 #define POPULATION_H
 #include <tr1/functional>
+#include <map>
+#include <vector>
+#include <set>
 #include "replication_record.h"
 
 using std::tr1::function;
@@ -45,7 +48,7 @@ class Population {
             =neighbor_affect_cell_through_affine_function) : 
         initial_width(width), initial_height(height), initial_depth(depth),
         neighbor_affect_cell_func(func), max_fitness_ever(0.0) {};
-    virtual ~Population() {};
+    virtual ~Population();
     int get_initial_width(void) const { return initial_width; };
     int get_initial_height(void) const { return initial_height; };
     int get_initial_depth(void) const { return initial_depth; };
@@ -197,7 +200,6 @@ class Population {
     virtual void kill(Cell &cell) {
       cell.kill();
     };
-    virtual void update_fitness(Cell &cell);
     virtual void update_all_fitnesses(void);
     // This returns NULL if there is no space to replicate, or a description of
     // the available space if there is.
@@ -209,6 +211,23 @@ class Population {
     function<void(Cell &, Cell &)> &get_neighbor_affect_cell_func(void) {
       return neighbor_affect_cell_func;
     }
+    // Only update_all_fitnesses() should call this.
+    virtual void update_fitness(Cell &cell);
+    const std::set<float> &get_survival_probabilities(void) const { 
+      return survival_probabilities; 
+    };
+    int get_num_cells_of_survival_probability(float survival_probability) 
+        const {
+      std::map<float, std::vector<Cell *> *>::const_iterator iter;
+      iter = cells_of_survival_probability.find(survival_probability);
+      if (iter != cells_of_survival_probability.end()) {
+        return iter->second->size();
+      }
+      return 0;
+    }
+    Cell &get_cell_of_survival_probability(float survival_probability, int i) {
+      return *(cells_of_survival_probability[survival_probability]->at(i));
+    }
   protected:
     virtual void set_max_fitness_ever(float fitness) {
       max_fitness_ever = fitness;
@@ -219,6 +238,9 @@ class Population {
     // The second argument is the neighbor which is affecting the first
     // argument.
     function<void(Cell &, Cell &)> neighbor_affect_cell_func;
+    void clear_cells_of_survival_probability(void);
+    std::set<float> survival_probabilities;
+    std::map<float, std::vector<Cell *> *> cells_of_survival_probability;
 };
 
 #endif

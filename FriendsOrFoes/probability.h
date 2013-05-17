@@ -53,6 +53,7 @@ class Random {
     static int rand_int_between_inclusive(int min, int max);
     static double rand_uniform();
     static bool bernoulli_check(double probability);
+    static unsigned int binomial_check(double probability, unsigned int n);
     static gsl_rng *get_gsl_rng_ptr(void) { return gsl_rng_ptr; }
     static RngStream *get_rngstream_ptr(void) { return rngstream_ptr; }
   private:

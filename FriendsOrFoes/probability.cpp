@@ -34,6 +34,7 @@
 #include <mpi.h>
 #endif
 #include <limits.h>
+#include <gsl/gsl_randist.h>
 
 double clamp_probability(double score) {
   float result = score;
@@ -62,6 +63,11 @@ void setRngStream(void *state, unsigned long int seed) {
   RngStream::SetPackageSeed(seeds);
 }
 
+void noopSetRngStream(void *state, unsigned long int seed) {
+  // This does nothing.  We actually don't want the gsl_rng messing with the
+  // seeds.
+}
+
 unsigned long int getRngStream(void *state) {
   if (Random::get_rngstream_ptr() == NULL) {
     throw UninitRngException();
@@ -83,11 +89,12 @@ static const gsl_rng_type rngstream_type = {
   0,  // The RngStream does have an internal state, the Cg array of 6 
       // doubles.  However, there is no need for gsl to mess with this 
       // directly.  So here we say that the size of the state is 0.
-  &setRngStream,
+  &noopSetRngStream,
   &getRngStream,
   &getDoubleRngStream
 };
 
+const gsl_rng_type *gsl_rng_rngstream = &rngstream_type;
 
 Random::Random(unsigned long seed) {
   setRngStream(NULL, seed);
@@ -101,11 +108,13 @@ Random::Random(unsigned long seed) {
   MPI_Comm_rank(MPI_COMM_WORLD, &stream_num);
 #endif
   rngstream_ptr = &(rngstreams[stream_num]);
+  gsl_rng_ptr = gsl_rng_alloc(gsl_rng_rngstream);
 }
 
 Random::~Random(void) {
   delete[] rngstreams;
   rngstream_ptr = NULL;
+  gsl_rng_free(gsl_rng_ptr);
   gsl_rng_ptr = NULL;
   num_streams = 0;
   stream_num = -1;
@@ -133,6 +142,13 @@ bool Random::bernoulli_check(double probability) {
   } else {
     return false;
   }
+}
+
+unsigned int Random::binomial_check(double probability, unsigned int n) {
+  if (Random::rngstream_ptr == NULL) {
+    throw UninitRngException();
+  }
+  return gsl_ran_binomial(gsl_rng_ptr, probability, n);
 }
 
 int Random::rand_int_between_inclusive(int min, int max) {

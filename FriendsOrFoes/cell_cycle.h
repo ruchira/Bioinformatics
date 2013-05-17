@@ -33,6 +33,7 @@
 #include "probability.h"
 #include "population.h"
 #include <vector>
+#include <set>
 
 using std::tr1::function;
 
@@ -66,8 +67,10 @@ class CellCycle{
       return total_num_cells_that_replicated;
     };
   protected:
+    virtual void kill(Cell &cell);
     virtual void try_survival(Cell &cell);
     virtual void try_reproduction(Cell &cell);
+    virtual void global_try_survival(void);
     virtual void global_try_reproduction(void);
     Population &population;
   private:
@@ -91,6 +94,7 @@ class CellCycle{
                                                       const Clone &clone);
     friend void *try_survival_func(void *data, Cell &cell);
     friend void *try_reproduction_func(void *data, Cell &cell);
+    std::set<int> indices_of_cells_to_kill;
 };
 
 #endif

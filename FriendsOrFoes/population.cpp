@@ -29,6 +29,7 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
 #include "population.h"
+#include "probability.h"
 
 void neighbor_affect_cell_through_affine_function(Cell &cell, Cell &neighbor) {
   if (cell.is_alive() && neighbor.is_alive()) {
@@ -133,6 +134,18 @@ float Population::get_size_of_boundary_of_clone(
   return result.boundary_size;
 }
 
+void Population::clear_cells_of_survival_probability(void) {
+  std::map<float, std::vector<Cell *> * >::iterator iter;
+  // Although we clear all the vectors, we leave them in place, to avoid
+  // repeatedly allocating and deallocating their associated memory.
+  for (iter = cells_of_survival_probability.begin(); 
+        iter != cells_of_survival_probability.end(); ++iter)
+  {
+    iter->second->clear();
+  }
+  survival_probabilities.clear();
+}
+
 void Population::update_fitness(Cell &cell) {
   if (cell.is_alive()) {
     cell.reset_fitness();
@@ -141,6 +154,17 @@ void Population::update_fitness(Cell &cell) {
       max_fitness_ever = cell.get_fitness();
     }
   }
+  float survival_probability 
+    = clamp_probability(cell.get_clone_ptr()->get_survival_coefficient()
+                        * cell.get_fitness());
+  std::map<float, std::vector<Cell *> * >::iterator iter;
+  iter = cells_of_survival_probability.find(survival_probability);
+  if (iter == cells_of_survival_probability.end()) {
+    cells_of_survival_probability[survival_probability] 
+      = new std::vector<Cell *>;
+  }
+  cells_of_survival_probability[survival_probability]->push_back(&cell);
+  survival_probabilities.insert(survival_probability);
 }
 
 void *update_fitness_func(void *data, Cell &cell) {
@@ -150,6 +174,15 @@ void *update_fitness_func(void *data, Cell &cell) {
 }
 
 void Population::update_all_fitnesses(void) {
+  clear_cells_of_survival_probability();
   fold(update_fitness_func, this);
 }
 
+Population::~Population() {
+  std::map<float, std::vector<Cell *> *>::iterator iter;
+  for (iter = cells_of_survival_probability.begin(); 
+        iter != cells_of_survival_probability.end(); ++iter)
+  {
+    delete iter->second;
+  }
+}
