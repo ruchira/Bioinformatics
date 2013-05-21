@@ -211,8 +211,6 @@ class Population {
     function<void(Cell &, Cell &)> &get_neighbor_affect_cell_func(void) {
       return neighbor_affect_cell_func;
     }
-    // Only update_all_fitnesses() should call this.
-    virtual void update_fitness(Cell &cell);
     const std::set<float> &get_survival_probabilities(void) const { 
       return survival_probabilities; 
     };
@@ -232,6 +230,8 @@ class Population {
     virtual void set_max_fitness_ever(float fitness) {
       max_fitness_ever = fitness;
     };
+    void update_fitness(Cell &cell);
+    friend void *update_fitness_func(void *data, Cell &cell);
   private:
     int initial_width, initial_height, initial_depth;
     float max_fitness_ever;
@@ -241,6 +241,7 @@ class Population {
     void clear_cells_of_survival_probability(void);
     std::set<float> survival_probabilities;
     std::map<float, std::vector<Cell *> *> cells_of_survival_probability;
+    // Only update_all_fitnesses() should call this.
 };
 
 #endif
