@@ -230,6 +230,7 @@ class Population {
     virtual void set_max_fitness_ever(float fitness) {
       max_fitness_ever = fitness;
     };
+    // Only update_all_fitnesses() should call this.
     void update_fitness(Cell &cell);
     friend void *update_fitness_func(void *data, Cell &cell);
   private:
@@ -241,7 +242,6 @@ class Population {
     void clear_cells_of_survival_probability(void);
     std::set<float> survival_probabilities;
     std::map<float, std::vector<Cell *> *> cells_of_survival_probability;
-    // Only update_all_fitnesses() should call this.
 };
 
 #endif
